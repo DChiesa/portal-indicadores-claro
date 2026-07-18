@@ -62,6 +62,7 @@ function wire(){document.getElementById('monthSelect').onchange=e=>{state.month=
 async function init(){const sel=document.getElementById('monthSelect');sel.innerHTML=MONTHS.map(([m])=>`<option value="${m}">${m}</option>`).join('');sel.value=state.month;wire();dirHandle=await loadHandle();if(dirHandle)document.getElementById('folderStatus').textContent='Pasta salva encontrada. Se o navegador pedir permissão, autorize para carregar o mês.';populateSideFilters();updateDashboard()}init();
 </script>
 
-<script src="./auto-loader.js"></script>
+<script src="./auto-loader.js"></script> ./at1-historico-supabase-fix.jsscript>
+  
 </body>
 </html>
