@@ -76,7 +76,7 @@ function installObserver(){
 
   const status=document.getElementById('status');
   if(status&&!/Falha|Baixando/i.test(status.textContent)){
-    status.textContent='V5.4 · Base atual e 5 históricos disponíveis.';
+    status.textContent='V5.4 · Base atual e 6 históricos disponíveis.';
   }
   return true;
 }
