@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const MONTHS={1:'JANEIRO',2:'FEVEREIRO',3:'MARÇO',4:'ABRIL',5:'MAIO',6:'JUNHO',7:'JULHO',8:'AGOSTO',9:'SETEMBRO',10:'OUTUBRO',11:'NOVEMBRO',12:'DEZEMBRO'};
-const known=['2026.01','2026.02','2026.03','2026.04','2026.05'];
+const known=['2026_01','2026_02','2026_03','2026_04','2026_05'];
 function apply(){
  const select=document.getElementById('sourceSelect');
  if(!select)return false;
