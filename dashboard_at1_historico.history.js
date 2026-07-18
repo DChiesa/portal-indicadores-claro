@@ -12,7 +12,14 @@ const KNOWN_FILES=[
   'dashboard_at1_historico_2026_02.xlsx',
   'dashboard_at1_historico_2026_03.xlsx',
   'dashboard_at1_historico_2026_04.xlsx',
-  'dashboard_at1_historico_2026_05.xlsx'
+  'dashboard_at1_historico_2026_05.xlsx',
+  'dashboard_at1_historico_2026_06.xlsx',
+  'dashboard_at1_historico_2026_07.xlsx',
+  'dashboard_at1_historico_2026_08.xlsx',
+  'dashboard_at1_historico_2026_09.xlsx',
+  'dashboard_at1_historico_2026_10.xlsx',
+  'dashboard_at1_historico_2026_11.xlsx',
+  'dashboard_at1_historico_2026_12.xlsx'
 ];
 
 let applying=false;
