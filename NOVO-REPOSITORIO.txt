@@ -1,0 +1,44 @@
+NOVO REPOSITÓRIO - PORTAL DE INDICADORES CLARO
+
+Nome recomendado do novo repositório:
+portal-indicadores-claro
+
+Este pacote foi preparado para funcionar em um NOVO repositório, sem alterar o repositório antigo tecnico-certificado-dashboard.
+
+ENDEREÇOS ESPERADOS
+Novo portal:
+https://dchiesa.github.io/portal-indicadores-claro/
+
+Portal/painel anterior:
+https://dchiesa.github.io/tecnico-certificado-dashboard/
+
+COMO PUBLICAR
+1. No GitHub, crie o repositório público portal-indicadores-claro.
+2. Marque Add a README file.
+3. Descompacte este ZIP no computador.
+4. Na raiz do novo repositório, use Add file > Upload files.
+5. Envie todos os arquivos descompactados, inclusive .nojekyll.
+6. Faça o commit diretamente na branch main.
+7. Abra Settings > Pages.
+8. Em Source, escolha Deploy from a branch.
+9. Em Branch, escolha main e / (root), depois Save.
+
+O repositório antigo não precisa ser apagado nem modificado.
+Os dois sites usam o mesmo projeto Supabase e o mesmo bucket privado bases-tecnico.
+
+ESTRUTURA DAS BASES NO SUPABASE
+atual/at1.xlsx
+atual/qualinet.txt
+atual/tnps.xlsx
+atual/nr35.xlsx
+atual/certidao_atendimento.xlsx
+atual/quebra_total.xlsx
+atual/recomendacoes.xlsx
+atual/flag_24h.xlsx
+atual/tecnico_certificado_atual.xlsx
+
+IMPORTANTE
+- Não envie os Excel para o GitHub.
+- Mantenha os nomes acima exatamente iguais no Supabase Storage.
+- O novo portal possui um botão "Painel anterior" para abrir o repositório antigo.
+- Todos os caminhos internos são relativos, então o pacote não depende do nome do repositório para abrir os HTMLs.

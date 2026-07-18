@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ANÁLISE DO QUALINET</title>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root{
+      --claro:#da291c;--claro-dark:#9d1208;--ink:#1d1d1f;--muted:#667085;--bg:#f6f7f9;--card:#fff;--line:#e6e8ec;
+      --ok:#00875a;--risk:#b54708;--late:#c1121f;--conv:#6f42c1;--node:#175cd3;--shadow:0 10px 28px rgba(16,24,40,.08)
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    header{background:linear-gradient(135deg,var(--claro),var(--claro-dark));color:#fff;padding:18px 24px;box-shadow:var(--shadow)}
+    h1{margin:0;font-size:23px;font-weight:900}.sub{font-size:13px;opacity:.94;margin-top:5px}.brand{display:flex;align-items:center;justify-content:space-between;gap:16px}.pillTop{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700}.topFlags{display:flex;align-items:flex-end;flex-direction:column;gap:5px}.creatorFlag{font-size:10px;font-weight:600;color:rgba(255,255,255,.88);letter-spacing:.02em}
+    main{padding:18px;max-width:1480px;margin:auto}.grid{display:grid;grid-template-columns:390px 1fr;gap:16px;transition:.2s}.grid.full{grid-template-columns:1fr}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+    .panel{padding:16px}.panelHeader{display:flex;justify-content:space-between;align-items:center;gap:8px}.panel h2{font-size:16px;margin:0}.hint{font-size:12px;color:var(--muted);line-height:1.45;margin:10px 0 12px}.leftHidden{display:none!important}
+    textarea{width:100%;height:365px;border:1px solid #d0d5dd;border-radius:13px;padding:12px;font-family:Consolas,monospace;font-size:12px;resize:vertical;background:#fff}
+    input[type=file],input[type=number]{width:100%;border:1px solid #d0d5dd;border-radius:11px;padding:10px;background:#fff;margin:6px 0 10px}.search{min-width:285px;border:1px solid #d0d5dd;border-radius:11px;padding:10px;background:#fff}
+    button{border:0;border-radius:11px;padding:10px 13px;font-weight:800;cursor:pointer;transition:.15s}.primary{background:var(--claro);color:#fff}.primary:hover{background:#b91d13}.secondary{background:#344054;color:#fff}.ghost{background:#fff;color:var(--claro);border:1px solid #f1b5b0}.soft{background:#f2f4f7;color:#344054}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    #report{padding:16px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.toolbar h2{margin:0;font-size:18px}.small{font-size:12px;color:var(--muted)}
+    .kpis{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:10px;margin-bottom:12px}.kpi{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px}.kpi .n{font-size:25px;font-weight:900}.kpi .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.ok{color:var(--ok)}.risk{color:var(--risk)}.late{color:var(--late)}.conv{color:var(--conv)}
+    .miniGrid{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px 18px;margin:10px 0 18px;padding:0}.mini{border:0;border-radius:0;padding:0;background:transparent;box-shadow:none}.mini h3{margin:0 0 8px;font-size:13px;color:#344054;text-transform:uppercase;letter-spacing:.04em}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{font-size:11px;border:1px solid #d0d5dd;background:#fff;color:#344054;border-radius:999px;padding:6px 9px}.chip.active{background:var(--claro);border-color:var(--claro);color:#fff}.chip .qtd{font-weight:900;margin-left:4px}.chip.okChip.active{background:var(--ok);border-color:var(--ok)}.chip.riskChip.active{background:var(--risk);border-color:var(--risk)}.chip.lateChip.active{background:var(--late);border-color:var(--late)}.chip.convChip.active{background:var(--conv);border-color:var(--conv)}
+    .barItem{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed #edf0f3}.barItem:last-child{border-bottom:0}.barItem b{font-family:Consolas,monospace}
+    .filterDashboard{display:grid;grid-template-columns:1fr;gap:14px;margin:18px 0}.dashCard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.dashHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}.dashHead h3{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.04em}.dashTotal{text-align:right;white-space:nowrap}.dashTotal b{display:block;color:var(--claro);font-size:23px;line-height:1}.dashTotal span{font-size:10px;color:var(--muted);text-transform:uppercase}.dashBars{display:grid;gap:9px}.dashRow{display:grid;grid-template-columns:minmax(135px,240px) 1fr minmax(112px,auto);align-items:center;gap:12px}.dashLabel{font-size:12px;font-weight:800;color:#344054;overflow-wrap:anywhere}.dashTrack{height:20px;background:#f2f4f7;border-radius:999px;overflow:hidden;position:relative}.dashFill{height:100%;min-width:0;border-radius:999px;background:linear-gradient(90deg,var(--claro),#ef5b50);transition:width .25s ease}.dashValue{font-family:Consolas,monospace;font-size:12px;font-weight:900;text-align:right;color:#344054}.dashEmpty{font-size:12px;color:var(--muted);padding:8px 0}.backTop{position:fixed;right:22px;bottom:22px;width:48px;height:48px;border-radius:50%;padding:0;background:var(--claro);color:#fff;box-shadow:0 10px 24px rgba(218,41,28,.32);z-index:999;display:none;align-items:center;justify-content:center;font-size:22px;line-height:1}.backTop.show{display:flex}.backTop:hover{background:var(--claro-dark);transform:translateY(-2px)}
+    table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:15px;overflow:hidden}th,td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:12px;text-align:left;vertical-align:top}th{background:#fafafa;color:#475467;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}.mono{font-family:Consolas,monospace}.badge{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;white-space:nowrap}.b-ok{background:#ecfdf3;color:var(--ok)}.b-risk{background:#fffaeb;color:var(--risk)}.b-late{background:#fef3f2;color:var(--late)}.b-conv{background:#f4f3ff;color:var(--conv)}.b-node{background:#eff8ff;color:var(--node)}
+    .empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed #cfd4dc;border-radius:15px;background:#fff}.insight{margin-top:12px;border-left:5px solid var(--claro);background:#fff;border-radius:14px;border:1px solid var(--line);padding:12px}.insight h3{margin:0 0 8px;font-size:14px}.insight ul{margin:0;padding-left:18px}.insight li{font-size:12.5px;margin:5px 0;color:#344054}.footer-note{font-size:11px;color:#667085;margin-top:10px;line-height:1.45}.hidden{display:none!important}
+    .updateBanner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:13px 15px;border-radius:16px;background:linear-gradient(135deg,#fff1f0,#ffffff);border:1px solid #f1b5b0;box-shadow:var(--shadow)}.updateBanner span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:900}.updateBanner b{font-size:19px;color:var(--claro);font-family:Consolas,monospace}.soft.active{background:var(--claro);color:#fff}.addr{max-width:320px;line-height:1.35}.nowrap{white-space:nowrap}
+    @media(max-width:1180px){.miniGrid{grid-template-columns:1fr 1fr}}@media(max-width:1050px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.miniGrid{grid-template-columns:1fr 1fr}}@media(max-width:700px){.miniGrid{grid-template-columns:1fr}.dashRow{grid-template-columns:1fr}.dashValue{text-align:left}.dashTrack{height:18px}.backTop{right:14px;bottom:14px}}
+  </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./portal-config.js"></script>
+<style>
+.portal-panel-bar{position:sticky;top:0;z-index:999998;display:flex;align-items:center;gap:12px;padding:9px 14px;background:#171717;color:#fff;font:12px Segoe UI,Arial,sans-serif;box-shadow:0 4px 18px #0004}.portal-panel-bar>div:nth-child(2){display:flex;flex-direction:column;min-width:0;flex:1}.portal-panel-bar small{color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.portal-panel-bar button{border:0;border-radius:9px;padding:8px 11px;background:#fff;color:#e30613;font-weight:900;cursor:pointer}.portal-auto-status{display:flex;align-items:center;gap:7px;max-width:360px}.portal-auto-status i{width:9px;height:9px;border-radius:50%;background:#f59e0b}.portal-auto-status.ok i{background:#22c55e}.portal-auto-status.error i{background:#ef4444}.portal-auto-status.error{color:#fecaca}@media(max-width:680px){.portal-panel-bar{flex-wrap:wrap}.portal-auto-status{order:4;width:100%;max-width:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div><h1>ANÁLISE DO QUALINET</h1><div class="sub">Painel clean para contratos, janela, status, conveniência, NODE, produto, modelo, pacote, terminal e LOG/AT5.</div></div>
+    <div class="topFlags"><div class="pillTop">Área de Negócios</div><div class="creatorFlag">Propriedade e criação: Demétrius Chiesa</div></div>
+  </div>
+</header>
+<main>
+  <div class="grid" id="layoutGrid">
+    <section class="card panel" id="inputPanel">
+      <div class="panelHeader"><h2>1) Alimentação de dados</h2><button class="soft" onclick="alternarEntrada()" id="btnToggle">Recolher</button></div>
+      <div id="inputContent">
+        <div class="hint">Cole o bloco ou importe TXT/DOCX. O painel lê <b>Cidade/Contrato</b>, <b>NODE</b>, <b>AREA 1</b>, <b>ABERTURA</b>, <b>VT Produto</b>, <b>LOG</b>, <b>FLAG CONV.</b> , <b>Modelo</b>, <b>Pacote</b>, <b>Terminal</b> e permite isolar por <b>Status</b>. O campo <b>LOG</b> também reconhece marcações <b>AT5 0, AT5 1, AT5 2, AT5 3...</b>.</div>
+        <label><b>Ano base</b></label><input id="baseYear" type="number" value="2026" min="2020" max="2035" />
+        <label><b>Importar arquivo</b></label><input id="fileInput" type="file" accept=".txt,.docx,.log,.csv" />
+        <label><b>Bloco de informações</b></label><textarea id="rawText" placeholder="Cole aqui o bloco com os contratos..."></textarea>
+        <div class="btns"><button class="primary" onclick="processar()">Analisar dados</button><button class="secondary" onclick="limpar()">Limpar</button><button class="ghost" onclick="carregarExemplo()">Exemplo</button></div>
+        <div class="footer-note"><b>Regra:</b> FLAG CONV. entra como Conveniência e não soma como Fora. Produto considera somente o texto antes do colchete, ex.: <b>VT VTA</b>, desconsiderando <b>[26...0473]</b>. LOG considera textos como <b>LOG 1</b>, <b>LOG1</b>, <b>AT5 1</b> ou <b>AT5 (1)</b>. No <b>Modelo</b>, mostra somente o nome/modelo do equipamento, sem misturar plano. No <b>Pacote</b>, agrupa nomes similares de forma resumida, como <b>350MB</b>, <b>600MB</b>, <b>CTV+ TOP HD</b>, <b>MIX HD</b> e <b>FAMILIA SD</b>.</div>
+      </div>
+    </section>
+
+    <section class="card" id="captureArea">
+      <div id="report">
+        <div class="toolbar">
+          <div><h2>Resultado da análise</h2><div class="small" id="msg">Nenhum dado processado.</div></div>
+          <div class="btns"><button class="soft" onclick="limparTodosFiltros()">Limpar filtros</button><button class="soft hidden" id="btnExpandir" onclick="alternarEntrada()">Mostrar alimentação</button><button class="soft" id="btnEndereco" onclick="toggleEndereco()">Mostrar endereços</button><button class="soft" id="btnPacote" onclick="togglePacote()">Mostrar pacote</button><button class="soft" id="btnTerminal" onclick="toggleTerminal()">Mostrar terminal</button><button class="soft" id="btnEstouro" onclick="toggleEstouro()">Ordem de estouro</button><input id="filter" class="search" placeholder="Busca múltipla: separe termos por vírgula, ; ou |" oninput="renderTudo()" /><button class="primary" onclick="exportarImagem()">Exportar imagem</button></div>
+        </div>
+        <div id="updateBanner" class="updateBanner hidden"><span>Dados analisados até</span><b id="dadosAtualizadosAte">--</b></div>
+        <div class="kpis">
+          <div class="kpi"><div class="n" id="kTotal">0</div><div class="l">Contratos</div></div>
+          <div class="kpi"><div class="n ok" id="kDentro">0</div><div class="l">Dentro 24h</div></div>
+          <div class="kpi"><div class="n risk" id="kRisco">0</div><div class="l">Risco / Executar até</div></div>
+          <div class="kpi"><div class="n late" id="kFora">0</div><div class="l">Fora 24h</div></div>
+          <div class="kpi"><div class="n conv" id="kConv">0</div><div class="l">Conveniência</div></div>
+        </div>
+        <div class="miniGrid">
+          <div class="mini"><h3>CIDADE</h3><div id="cidadeChips" class="chips"></div></div>
+          <div class="mini"><h3>STATUS</h3><div id="statusChips" class="chips"></div></div>
+          <div class="mini"><h3>NODE</h3><div id="nodeChips" class="chips"></div></div>
+          <div class="mini"><h3>LOG / AT5</h3><div id="logChips" class="chips"></div></div>
+          <div class="mini"><h3>PRODUTOS</h3><div id="produtoResumo" class="chips"></div></div>
+          <div class="mini"><h3>MODELO</h3><div id="modeloChips" class="chips"></div></div>
+          <div class="mini"><h3>PACOTE</h3><div id="pacoteChips" class="chips"></div></div>
+          <div class="mini"><h3>TERMINAL</h3><div id="terminalChips" class="chips"></div></div>
+        </div>
+        <div id="filterDashboard" class="filterDashboard"></div>
+        <div id="tableWrap" class="empty">Ainda não há dados analisados.</div>
+        <div id="insights" class="insight hidden"><h3>Insights operacionais</h3><ul id="insightList"></ul></div>
+      </div>
+    </section>
+  </div>
+</main>
+<button id="backTop" class="backTop" type="button" onclick="voltarAoTopo()" aria-label="Voltar ao topo" title="Voltar ao topo">↑</button>
+<script>
+let dados=[], blocosDetectados=0, filtroNodes=new Set(), filtroLogs=new Set(), filtroStatus=new Set(), filtroCidades=new Set(), filtroProdutos=new Set(), filtroModelos=new Set(), filtroPacotes=new Set(), filtroTerminais=new Set(), mostrarEndereco=false, mostrarPacote=false, mostrarTerminal=false, ordenarEstouro=false, dadosAtualizadosAte='';
+const meses={jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
+const STATUS = {DENTRO:'DENTRO', RISCO:'RISCO', FORA:'FORA', CONV:'CONVENIÊNCIA ASSINANTE'};
+function normalizar(txt){return (txt||'').replace(/\r/g,'\n').replace(/[\t]+/g,' ').replace(/\u00a0/g,' ').replace(/[ ]{2,}/g,' ')}
+function parseHora(h){const p=h.split(':').map(Number);return[p[0]||0,p[1]||0,p[2]||0]}
+function parseData(d,m,h,ano){const [hh,mm,ss]=parseHora(h);return new Date(+ano,meses[m.toLowerCase().slice(0,3)],+d,hh,mm,ss)}
+function fmt(dt,semSeg=false){const mm=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][dt.getMonth()],pad=n=>String(n).padStart(2,'0');return `${pad(dt.getDate())}/${mm} ${pad(dt.getHours())}:${pad(dt.getMinutes())}${semSeg?'':':'+pad(dt.getSeconds())}`}
+function soHora(dt){return `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`}
+function statusInfo(ini,fim,limite,conv){if(conv)return{status:STATUS.CONV,cls:'b-conv',acao:'Desconsiderar de Fora'};if(fim<=limite)return{status:STATUS.DENTRO,cls:'b-ok',acao:'Executar dentro da janela'};if(ini<=limite&&limite<fim)return{status:STATUS.RISCO,cls:'b-risk',acao:'Executar até o horário limite'};return{status:STATUS.FORA,cls:'b-late',acao:'Fora do prazo 24h'}}
+function encontrarBlocos(t){const header=/(?:^|\n)\s*(?:AT5\s*[:\-]?\s*\(?\s*\d+\s*\)?\s*)?([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ\s.-]{1,40}?)\s*\(([A-Z0-9]{2,8})\):\s*(\d{6,})/g;const ms=[...t.matchAll(header)];blocosDetectados=ms.length;return ms.map((m,i)=>({texto:t.slice(m.index,i+1<ms.length?ms[i+1].index:t.length),cidade:m[1].trim().replace(/\s+/g,' '),sigla:m[2],contrato:m[3]}))}
+function produtoDoBloco(bloco){const m=bloco.match(/\b(VT\s+[A-Z]{2,5})\s*\[[^\]]*\]/i);return m?m[1].toUpperCase().replace(/\s+/g,' '):'N/I'}
+function limparCampo(v){return (v||'').replace(/\s+/g,' ').replace(/^[\s:;\-]+|[\s;]+$/g,'').trim()}
+function linhaComTermo(bloco,re){const linhas=(bloco||'').split(/\n+/).map(l=>limparCampo(l)).filter(Boolean);return linhas.find(l=>re.test(l))||''}
+function valorRotulo(bloco,rotulos){const pad=rotulos.join('|');const re=new RegExp('\\b(?:'+pad+')\\s*(?:TV)?\\s*[:=\\-]\\s*([^\\n]+)','i');const m=(bloco||'').match(re);return m?limparCampo(m[1]):''}
+function limparModeloTerminal(v){
+  v=limparCampo(v).toUpperCase();
+  if(!v)return 'N/I';
+  if(/DECODER\s+CARDLESS/i.test(v)) return v.replace(/\s+\d+$/,'');
+  if(/SMART.*CARD|SMARTCARD/i.test(v)) return 'DECODER';
+  // corta tudo que geralmente entra como plano/pacote, mantendo só o modelo do equipamento
+  const corte=/\b(BL\s*(?:MULTI|\d+\s*M|\d+M|\d+\s*MEGA|\d+MEGA)|FIBRA|FONE|PONTO|CONSULTAR|RX\/TX|TX\/RX|PACOTE|PLANO|PM\s+|TOP\s+HD|MIX\s+HD|CTV\+|CLARO\s+TV|NET\s+TV|GPLAY|GIGA|MEGA)\b/i;
+  const m=v.match(corte);
+  if(m&&m.index>0)v=limparCampo(v.slice(0,m.index));
+  // remove apenas contagem final isolada após o modelo, ex.: FST3486 16X4 2 -> FST3486 16X4
+  v=v.replace(/\s+\d+$/,'').trim();
+  return v||'N/I';
+}
+
+function normalizarPacote(v){
+  v=limparCampo(v).toUpperCase();
+  if(!v||v==='N/I')return 'N/I';
+  // Internet: agrupa por velocidade, removendo ADQ/MIG/CONSULTAR/RX-TX e demais complementos
+  let m=v.match(/\b(\d{2,4})\s*(?:M|MEGA|MB)\b/i);
+  if(m)return `${m[1]}MB`;
+  if(/\b1\s*(?:G|GB|GIGA)\b/i.test(v))return '1GB';
+  // TV: agrupa planos similares pelo nome principal
+  if(/FAMILIA\s+SD/i.test(v))return 'FAMILIA SD';
+  if(/FAMILIA\s+HD/i.test(v))return 'FAMILIA HD';
+  if(/MIX\s+HD/i.test(v))return 'MIX HD';
+  if(/TOP\s+HD\s+4K/i.test(v))return 'TOP HD 4K';
+  if(/TOP\s+HD\s+C\/VTA/i.test(v))return 'TOP HD C/VTA';
+  if(/CTV\+\s*TOP\s+HD|CTV\+/i.test(v))return 'CTV+ TOP HD';
+  if(/FONE\+NET/i.test(v))return 'FONE+NET';
+  if(/FONE/i.test(v))return 'FONE';
+  // Se não cair nas regras acima, limpa apenas textos operacionais comuns
+  v=v.replace(/\b(ADQ|MIG|CONSULTAR|RX\/TX|TX\/RX|RET|FID|ATQ|EXC|REV|PM|GPLAY|MOVEL|MÓVEL|RENT|ANUNCIO|ANÚNCIO|BR|TOT|DO|SEU|JEITO)\b/g,' ');
+  v=v.replace(/\s+\d+$/,'').replace(/\s+/g,' ').trim();
+  return v||'N/I';
+}
+function parseEquipLinha(linha){
+  linha=limparCampo(linha); if(!/^\d{1,2}\/\d{1,2}\/\d{4}\b/.test(linha))return null;
+  const tipos=['TERMINAL ONT WIFI 6 GPON','TERMINAL ONT WIFI 6','TERMINAL ONT','DECODER CARDLESS','SMART CARD','CABLE MODEM','MODEM','EMTA','STB','ONT'];
+  const m=linha.match(/^(\d{1,2}\/\d{1,2}\/\d{4})\s+(.+)$/); if(!m)return null;
+  let desde=m[1], resto=m[2], terminal='';
+  for(const t of tipos){const re=new RegExp('^'+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');if(re.test(resto)){terminal=t.toUpperCase();resto=limparCampo(resto.replace(re,''));break}}
+  if(!terminal)return null;
+  const sm=resto.match(/^(\S+)\s+(.+)$/); if(!sm)return null;
+  const serie=sm[1].toUpperCase(); let desc=sm[2].toUpperCase();
+  const pkgRe=/\b(BL\s*(?:MULTI|\d+\s*M|\d+M|\d+\s*MEGA|\d+MEGA)|FIBRA\s+MULTI\s+\d+\s*M|FIBRA\s+\d+\s*M|FIBRA|FONE|PONTO|CONSULTAR|RX\/TX|TX\/RX|PACOTE|PLANO|PM\s+|FAMILIA\s+SD|FAMILIA\s+HD|TOP\s+HD|MIX\s+HD|CTV\+\s+TOP\s+HD|CTV\+|CLARO\s+TV|NET\s+TV|GPLAY|GIGA|MEGA)/i;
+  const pm=desc.match(pkgRe); let modelo=desc, pacote='N/I';
+  if(pm){modelo=limparCampo(desc.slice(0,pm.index));pacote=limparCampo(desc.slice(pm.index));}
+  return {desde,terminal,serie,modelo:limparModeloTerminal(modelo),pacote:normalizarPacote(pacote||'N/I')};
+}
+function equipamentosDoBloco(bloco){
+  const linhas=(bloco||'').split(/\n+/).map(l=>limparCampo(l)).filter(Boolean);
+  const eqs=linhas.map(parseEquipLinha).filter(Boolean); if(eqs.length)return eqs;
+  const valModelo=valorRotulo(bloco,['MODELO','MODELO EQUIPAMENTO','EQUIPAMENTO']);
+  const valPacote=valorRotulo(bloco,['PACOTE','PACOTE TV','PLANO','COMBO']);
+  const valTerminal=valorRotulo(bloco,['TERMINAL','NUMERO TERMINAL','NÚMERO TERMINAL','STB','DECODER','MAC','SERIAL','Nº DE SÉRIE','NUMERO DE SERIE','NÚMERO DE SÉRIE']);
+  const linhaDecoder=linhaComTermo(bloco,/DECODER\s+CARDLESS/i), linhaSmart=linhaComTermo(bloco,/SMART\s*[-_]?\s*CARD|SMARTCARD/i);
+  const modelo=limparModeloTerminal(valModelo||linhaDecoder||linhaSmart||'N/I');
+  const pacote=normalizarPacote(valPacote||linhaComTermo(bloco,/\b(PACOTE|PLANO|COMBO|BL\s*(?:MULTI|\d+\s*M|\d+M|\d+\s*MEGA)|FIBRA|FONE|PONTO)\b/i)||'N/I');
+  return [{desde:'',terminal:(valTerminal||'N/I').toUpperCase(),serie:'',modelo,pacote}];
+}
+function resumoAgrupado(arr,key){const mapa={};arr.forEach(x=>{const v=(x[key]||'N/I').toUpperCase();mapa[v]=(mapa[v]||0)+1});return Object.entries(mapa).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([v,q])=>`${v}${q>1?' ('+q+'x)':''}`).join('<br>')||'N/I'}
+function resumoTerminal(arr){return arr.map(x=>`${x.terminal||'N/I'}${x.serie?' - '+x.serie:''}`).join('<br>')||'N/I'}
+function modelosLista(d){return (d.equipamentos&&d.equipamentos.length?d.equipamentos.map(e=>e.modelo):[d.modelo||'N/I'])}
+function pacotesLista(d){return (d.equipamentos&&d.equipamentos.length?d.equipamentos.map(e=>e.pacote):[d.pacote||'N/I'])}
+function terminaisLista(d){return (d.equipamentos&&d.equipamentos.length?d.equipamentos.map(e=>e.terminal):[(d.terminal||'N/I').split(' - ')[0]])}
+function modeloDoBloco(bloco){return resumoAgrupado(equipamentosDoBloco(bloco),'modelo')}
+function pacoteDoBloco(bloco){return resumoAgrupado(equipamentosDoBloco(bloco),'pacote')}
+function terminalDoBloco(bloco){return resumoTerminal(equipamentosDoBloco(bloco))}
+function nodeDoBloco(bloco){const m=bloco.match(/\bNODE\s*:\s*([A-Z0-9._-]+)/i);return m?m[1].toUpperCase():'N/I'}
+function enderecoDoBloco(bloco){const m=bloco.match(/ENDEREÇO\s*:\s*([\s\S]*?)(?=\s+ABERTURA\s*:|\n|$)/i);return m?m[1].replace(/\s+/g,' ').trim():'N/I'}
+function extrairAtualizacao(texto){const matches=[...(texto||'').matchAll(/(?:©\s*2006-2026\s*QualiNET[\s\S]*?)?(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})/gi)];return matches.length?matches[matches.length-1][1]:''}
+function logsDoBloco(bloco){const logs=new Set();let m;const re=/\bLOG\s*[:\-]?\s*(\d+)\b|\bLOG(\d+)\b|\bAT5\s*[:\-]?\s*\(?\s*(\d+)\s*\)?\b/gi;while((m=re.exec(bloco))!==null){const v=m[1]||m[2]||m[3];if(v!==undefined)logs.add(String(v))}return [...logs].sort((a,b)=>Number(a)-Number(b))}
+function extrair(texto){const ano=document.getElementById('baseYear').value||new Date().getFullYear();const t=normalizar(texto);const blocos=encontrarBlocos(t);const out=[];const reArea=/AREA\s*1\s*:\s*(\d{1,2})\s*\/\s*(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/i;const reAbert=/ABERTURA\s*:\s*(\d{1,2})\s*\/\s*(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)\s*(\d{1,2}:\d{2}(?::\d{2})?)/i;blocos.forEach(b=>{const bloco=b.texto,area=bloco.match(reArea),ab=bloco.match(reAbert);if(!area||!ab)return;const flagConv=/FLAG\s*CONV\.?|F\s*L\s*A\s*G\s*C\s*O\s*N\s*V\.?|CONVENI[ÊE]NCIA/i.test(bloco);const abertura=parseData(ab[1],ab[2],ab[3],ano);let inicio=parseData(area[1],area[2],area[3]+':00',ano),fim=parseData(area[1],area[2],area[4]+':00',ano);if(fim<=inicio)fim.setDate(fim.getDate()+1);if(inicio<abertura&&inicio.getMonth()<abertura.getMonth()){inicio.setFullYear(inicio.getFullYear()+1);fim.setFullYear(fim.getFullYear()+1)}const limite24=new Date(abertura.getTime()+24*60*60*1000),fecharAte=new Date(limite24.getTime()-60000),st=statusInfo(inicio,fim,limite24,flagConv);out.push({cidade:b.cidade,sigla:b.sigla,contrato:b.contrato,endereco:enderecoDoBloco(bloco),node:nodeDoBloco(bloco),produto:produtoDoBloco(bloco),equipamentos:equipamentosDoBloco(bloco),modelo:modeloDoBloco(bloco),pacote:pacoteDoBloco(bloco),terminal:terminalDoBloco(bloco),logs:logsDoBloco(bloco),abertura,inicio,fim,limite24,fecharAte,status:st.status,cls:st.cls,acao:st.acao,flagConv})});return out}
+function processar(){const bruto=document.getElementById('rawText').value;dadosAtualizadosAte=extrairAtualizacao(bruto);dados=extrair(bruto);limparTodosFiltros(false);renderTudo()}
+function dadosBaseCidade(){return dados.filter(d=>!filtroCidades.size||filtroCidades.has(d.cidade))}
+function toggleSet(set,valor){set.has(valor)?set.delete(valor):set.add(valor);sanitizarFiltrosCidade();renderTudo()}
+function toggleCidade(cidade){toggleSet(filtroCidades,cidade)}
+function limparCidades(){filtroCidades.clear();sanitizarFiltrosCidade();renderTudo()}
+function limparSet(set){set.clear();renderTudo()}
+function limparTodosFiltros(render=true){filtroCidades.clear();filtroNodes.clear();filtroLogs.clear();filtroStatus.clear();filtroProdutos.clear();filtroModelos.clear();filtroPacotes.clear();filtroTerminais.clear();if(render)renderTudo()}
+function sanitizarFiltrosCidade(){const base=dadosBaseCidade();[...filtroNodes].forEach(v=>{if(!base.some(d=>d.node===v))filtroNodes.delete(v)});[...filtroLogs].forEach(v=>{if(!base.some(d=>d.logs.includes(v)))filtroLogs.delete(v)});[...filtroStatus].forEach(v=>{if(!base.some(d=>d.status===v))filtroStatus.delete(v)});[...filtroProdutos].forEach(v=>{if(!base.some(d=>d.produto===v))filtroProdutos.delete(v)});[...filtroModelos].forEach(v=>{if(!base.some(d=>modelosLista(d).includes(v)))filtroModelos.delete(v)});[...filtroPacotes].forEach(v=>{if(!base.some(d=>pacotesLista(d).includes(v)))filtroPacotes.delete(v)});[...filtroTerminais].forEach(v=>{if(!base.some(d=>terminaisLista(d).includes(v)))filtroTerminais.delete(v)})}
+function dadosFiltrados(){const termos=(document.getElementById('filter').value||'').toLowerCase().split(/[;,|]+/).map(x=>x.trim()).filter(Boolean);return dados.filter(d=>{const texto=`${d.cidade} ${d.sigla} ${d.contrato} ${d.endereco} ${d.node} ${d.produto} ${d.modelo} ${d.pacote} ${d.terminal} LOG/AT5 ${d.logs.join(' LOG/AT5 ')} ${d.status}`.toLowerCase();return(!filtroCidades.size||filtroCidades.has(d.cidade))&&(!filtroNodes.size||filtroNodes.has(d.node))&&(!filtroLogs.size||d.logs.some(l=>filtroLogs.has(l)))&&(!filtroStatus.size||filtroStatus.has(d.status))&&(!filtroProdutos.size||filtroProdutos.has(d.produto))&&(!filtroModelos.size||modelosLista(d).some(m=>filtroModelos.has(m)))&&(!filtroPacotes.size||pacotesLista(d).some(p=>filtroPacotes.has(p)))&&(!filtroTerminais.size||terminaisLista(d).some(t=>filtroTerminais.has(t)))&&(!termos.length||termos.some(t=>texto.includes(t)))})}
+function countBy(arr,keyFn){const o={};arr.forEach(x=>{const k=keyFn(x)||'N/I';o[k]=(o[k]||0)+1});return Object.entries(o).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))}
+function escaparHtml(v){return String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+function contarVtsPorValor(view,valoresFn){const mapa={};view.forEach(d=>{const valores=[...new Set((valoresFn(d)||[]).map(v=>(v||'N/I').toString().toUpperCase()))];valores.forEach(v=>mapa[v]=(mapa[v]||0)+1)});return Object.entries(mapa).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))}
+function renderDashboardFiltros(view){const host=document.getElementById('filterDashboard');if(!host)return;const total=view.length;const defs=[
+  ['CIDADE',d=>[d.cidade]],['STATUS',d=>[d.status]],['NODE',d=>[d.node]],['LOG / AT5',d=>d.logs.length?d.logs.map(v=>'LOG/AT5 '+v):['SEM LOG/AT5']],
+  ['PRODUTOS',d=>[d.produto]],['MODELO',d=>modelosLista(d)],['PACOTE',d=>pacotesLista(d)],['TERMINAL',d=>terminaisLista(d)]
+];
+if(!dados.length){host.innerHTML='';return}
+host.innerHTML=defs.map(([titulo,fn])=>{const itens=contarVtsPorValor(view,fn);const linhas=itens.length?itens.map(([nome,q])=>{const pct=total?(q/total*100):0;const pctTxt=pct.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});return `<div class="dashRow"><div class="dashLabel">${escaparHtml(nome)}</div><div class="dashTrack" title="${q} de ${total} VTs (${pctTxt}%)"><div class="dashFill" style="width:${Math.min(100,pct)}%"></div></div><div class="dashValue">${q} VT${q===1?'':'s'} · ${pctTxt}%</div></div>`}).join(''):'<div class="dashEmpty">Nenhuma VT no filtro atual.</div>';return `<section class="dashCard"><div class="dashHead"><div><h3>${titulo}</h3><div class="small">Distribuição considerando as VTs exibidas no filtro atual</div></div><div class="dashTotal"><b>${total}</b><span>Total de VTs</span></div></div><div class="dashBars">${linhas}</div></section>`}).join('')}
+function voltarAoTopo(){window.scrollTo({top:0,behavior:'smooth'})}
+window.addEventListener('scroll',()=>{const b=document.getElementById('backTop');if(b)b.classList.toggle('show',window.scrollY>300)})
+function renderCidadeChips(){const cidades=countBy(dados,d=>d.cidade);document.getElementById('cidadeChips').innerHTML=`<button class="chip ${!filtroCidades.size?'active':''}" onclick="limparCidades()">Todas <span class="qtd">${dados.length}</span></button>`+cidades.map(([c,q])=>`<button class="chip ${filtroCidades.has(c)?'active':''}" onclick="toggleCidade('${c}')">${c} <span class="qtd">${q}</span></button>`).join('')}
+function renderStatusChips(){
+  const base=dadosBaseCidade(), total=base.length, itens=[['Dentro',STATUS.DENTRO,'okChip'],['Risco',STATUS.RISCO,'riskChip'],['Fora',STATUS.FORA,'lateChip'],['Conveniência',STATUS.CONV,'convChip']];
+  document.getElementById('statusChips').innerHTML=`<button class="chip ${!filtroStatus.size?'active':''}" onclick="limparSet(filtroStatus)">Todos <span class="qtd">${total}</span></button>`+itens.map(([label,status,cls])=>{const q=base.filter(d=>d.status===status).length;return `<button class="chip ${cls} ${filtroStatus.has(status)?'active':''}" onclick="toggleSet(filtroStatus,'${status}')">${label} <span class="qtd">${q}</span></button>`}).join('');
+}
+function renderChips(){const base=dadosBaseCidade(),nodes=countBy(base,d=>d.node),logs=countBy(base.flatMap(d=>d.logs.length?d.logs.map(l=>({l})):[]),x=>x.l);renderCidadeChips();renderStatusChips();document.getElementById('nodeChips').innerHTML=`<button class="chip ${!filtroNodes.size?'active':''}" onclick="limparSet(filtroNodes)">Todos <span class="qtd">${base.length}</span></button>`+nodes.map(([n,q])=>`<button class="chip ${filtroNodes.has(n)?'active':''}" onclick="toggleSet(filtroNodes,'${n.replace(/'/g,"\'")}')">${n} <span class="qtd">${q}</span></button>`).join('');document.getElementById('logChips').innerHTML=`<button class="chip ${!filtroLogs.size?'active':''}" onclick="limparSet(filtroLogs)">Todos</button>`+(logs.length?logs.map(([l,q])=>`<button class="chip ${filtroLogs.has(l)?'active':''}" onclick="toggleSet(filtroLogs,'${l}')">LOG/AT5 ${l} <span class="qtd">${q}</span></button>`).join(''):'<span class="small">Nenhum LOG/AT5 localizado</span>')}
+function renderResumoProdutos(){const base=dadosBaseCidade(),prod=countBy(base,d=>d.produto);document.getElementById('produtoResumo').innerHTML=`<button class="chip ${!filtroProdutos.size?'active':''}" onclick="limparSet(filtroProdutos)">Todos <span class="qtd">${base.length}</span></button>`+(prod.length?prod.map(([p,q])=>`<button class="chip ${filtroProdutos.has(p)?'active':''}" onclick="toggleSet(filtroProdutos,'${p.replace(/'/g,"\'")}')">${p} <span class="qtd">${q}</span></button>`).join(''):'<span class="small">Sem produtos</span>')}
+function renderResumoModelosPacotes(){const base=dadosBaseCidade(),mods=countBy(base.flatMap(d=>modelosLista(d).map(v=>({v}))),x=>x.v),pacs=countBy(base.flatMap(d=>pacotesLista(d).map(v=>({v}))),x=>x.v),terms=countBy(base.flatMap(d=>terminaisLista(d).map(v=>({v}))),x=>x.v);const modEl=document.getElementById('modeloChips'),pacEl=document.getElementById('pacoteChips'),terEl=document.getElementById('terminalChips');if(modEl)modEl.innerHTML=`<button class="chip ${!filtroModelos.size?'active':''}" onclick="limparSet(filtroModelos)">Todos <span class="qtd">${base.length}</span></button>`+(mods.length?mods.map(([m,q])=>`<button class="chip ${filtroModelos.has(m)?'active':''}" onclick="toggleSet(filtroModelos,'${m.replace(/'/g,"\'")}')">${m} <span class="qtd">${q}</span></button>`).join(''):'<span class="small">Sem modelo</span>');if(pacEl)pacEl.innerHTML=`<button class="chip ${!filtroPacotes.size?'active':''}" onclick="limparSet(filtroPacotes)">Todos <span class="qtd">${base.length}</span></button>`+(pacs.length?pacs.map(([p,q])=>`<button class="chip ${filtroPacotes.has(p)?'active':''}" onclick="toggleSet(filtroPacotes,'${p.replace(/'/g,"\'")}')">${p} <span class="qtd">${q}</span></button>`).join(''):'<span class="small">Sem pacote</span>');if(terEl)terEl.innerHTML=`<button class="chip ${!filtroTerminais.size?'active':''}" onclick="limparSet(filtroTerminais)">Todos <span class="qtd">${base.length}</span></button>`+(terms.length?terms.map(([t,q])=>`<button class="chip ${filtroTerminais.has(t)?'active':''}" onclick="toggleSet(filtroTerminais,'${t.replace(/'/g,"\'")}')">${t} <span class="qtd">${q}</span></button>`).join(''):'<span class="small">Sem terminal</span>')}
+function renderTabela(view){const wrap=document.getElementById('tableWrap');if(!dados.length){wrap.className='empty';wrap.innerHTML='Nenhum contrato analisado. Verifique se o texto possui Cidade (SIGLA): contrato, AREA 1 e ABERTURA.';return}wrap.className='';const lista=ordenarEstouro?[...view].sort((a,b)=>(a.flagConv-b.flagConv)||(a.fecharAte-b.fecharAte)||a.contrato.localeCompare(b.contrato)):view;const thEndereco=mostrarEndereco?'<th>Endereço</th>':'';const thPacote=mostrarPacote?'<th>Pacote</th>':'';const thTerminal=mostrarTerminal?'<th>Terminal</th>':'';wrap.innerHTML=`<table><thead><tr><th>Cidade</th><th>Contrato</th>${thEndereco}<th>NODE</th><th>Produto</th><th>Modelo</th>${thPacote}${thTerminal}<th>LOG / AT5</th><th>Abertura</th><th>Janela</th><th>Executar / Fechar até</th><th>Status</th></tr></thead><tbody>${lista.map((d,i)=>{const tdEndereco=mostrarEndereco?`<td class="addr">${d.endereco||'N/I'}</td>`:'';const tdPacote=mostrarPacote?`<td class="addr">${d.pacote||'N/I'}</td>`:'';const tdTerminal=mostrarTerminal?`<td class="mono">${d.terminal||'N/I'}</td>`:'';const ordem=ordenarEstouro?`<br><span class="small nowrap">Ordem estouro: ${i+1}º</span>`:'';return `<tr><td><b>${d.cidade}</b><br><span class="small">${d.sigla}</span></td><td class="mono"><b>${d.contrato}</b>${ordem}</td>${tdEndereco}<td><span class="badge b-node">${d.node}</span></td><td>${d.produto}</td><td>${d.modelo||'N/I'}</td>${tdPacote}${tdTerminal}<td>${d.logs.length?d.logs.map(l=>'LOG/AT5 '+l).join('<br>'):'-'}</td><td>${fmt(d.abertura)}</td><td>${fmt(d.inicio,true)} - ${soHora(d.fim)}</td><td><b>${fmt(d.fecharAte,true)}</b><br><span class="small">${d.acao}</span></td><td>${d.flagConv?'<span class="badge b-conv">FLAG CONV.</span><br>':''}<span class="badge ${d.cls}">${d.status}</span></td></tr>`}).join('')}</tbody></table>`}
+function renderInsights(view){const ul=document.getElementById('insightList'),box=document.getElementById('insights');if(!dados.length){box.classList.add('hidden');return}box.classList.remove('hidden');const risco=view.filter(d=>d.status===STATUS.RISCO).length, fora=view.filter(d=>d.status===STATUS.FORA).length, conv=view.filter(d=>d.status===STATUS.CONV).length;const topNode=countBy(view,d=>d.node)[0], topProduto=countBy(view,d=>d.produto)[0], topModelo=countBy(view.flatMap(d=>modelosLista(d).map(v=>({v}))),x=>x.v)[0], topPacote=countBy(view.flatMap(d=>pacotesLista(d).map(v=>({v}))),x=>x.v)[0], topTerminal=countBy(view.flatMap(d=>terminaisLista(d).map(v=>({v}))),x=>x.v)[0];const urg=view.filter(d=>d.status===STATUS.RISCO).sort((a,b)=>a.fecharAte-b.fecharAte)[0];let itens=[];if(filtroStatus.size)itens.push(`Filtros de status ativos: <b>${[...filtroStatus].join(', ')}</b>.`);if(topNode)itens.push(`NODE com maior volume no filtro atual: <b>${topNode[0]}</b> com <b>${topNode[1]}</b> contrato(s).`);if(topProduto)itens.push(`Produto mais recorrente: <b>${topProduto[0]}</b> com <b>${topProduto[1]}</b> ocorrência(s), desconsiderando a numeração entre colchetes.`);if(topModelo)itens.push(`Modelo mais recorrente: <b>${topModelo[0]}</b> com <b>${topModelo[1]}</b> ocorrência(s), sem misturar plano/pacote.`);if(topPacote)itens.push(`Pacote mais recorrente: <b>${topPacote[0]}</b> com <b>${topPacote[1]}</b> ocorrência(s), agrupando nomes similares.`);if(topTerminal)itens.push(`Terminal mais recorrente: <b>${topTerminal[0]}</b> com <b>${topTerminal[1]}</b> ocorrência(s).`);if(risco||fora)itens.push(`Atenção operacional: há <b>${risco}</b> contrato(s) em risco e <b>${fora}</b> fora de 24h no filtro atual.`);if(conv)itens.push(`<b>${conv}</b> contrato(s) foram tratados como Conveniência de Assinante e não compõem o Fora.`);if(urg)itens.push(`Prioridade imediata: contrato <b>${urg.contrato}</b> no NODE <b>${urg.node}</b> deve ser executado até <b>${fmt(urg.fecharAte,true)}</b>.`);if(ordenarEstouro)itens.push('A tabela está ordenada pelo menor horário de fechamento/estouro primeiro, considerando os casos exibidos no filtro atual.');ul.innerHTML=itens.map(x=>`<li>${x}</li>`).join('')}
+function toggleEndereco(){mostrarEndereco=!mostrarEndereco;renderTudo()}
+function togglePacote(){mostrarPacote=!mostrarPacote;renderTudo()}
+function toggleTerminal(){mostrarTerminal=!mostrarTerminal;renderTudo()}
+function toggleEstouro(){ordenarEstouro=!ordenarEstouro;renderTudo()}
+function renderTudo(){sanitizarFiltrosCidade();const view=dadosFiltrados();const banner=document.getElementById('updateBanner');if(dados.length&&dadosAtualizadosAte){document.getElementById('dadosAtualizadosAte').textContent=dadosAtualizadosAte;banner.classList.remove('hidden')}else{banner.classList.add('hidden')}const btnEnd=document.getElementById('btnEndereco'),btnPac=document.getElementById('btnPacote'),btnTer=document.getElementById('btnTerminal'),btnEst=document.getElementById('btnEstouro');if(btnEnd){btnEnd.textContent=mostrarEndereco?'Ocultar endereços':'Mostrar endereços';btnEnd.classList.toggle('active',mostrarEndereco)}if(btnPac){btnPac.textContent=mostrarPacote?'Ocultar pacote':'Mostrar pacote';btnPac.classList.toggle('active',mostrarPacote)}if(btnTer){btnTer.textContent=mostrarTerminal?'Ocultar terminal':'Mostrar terminal';btnTer.classList.toggle('active',mostrarTerminal)}if(btnEst){btnEst.textContent=ordenarEstouro?'Ordem de estouro ativa':'Ordem de estouro';btnEst.classList.toggle('active',ordenarEstouro)}document.getElementById('kTotal').textContent=view.length;document.getElementById('kDentro').textContent=view.filter(d=>d.status===STATUS.DENTRO).length;document.getElementById('kRisco').textContent=view.filter(d=>d.status===STATUS.RISCO).length;document.getElementById('kFora').textContent=view.filter(d=>d.status===STATUS.FORA).length;document.getElementById('kConv').textContent=view.filter(d=>d.status===STATUS.CONV).length;document.getElementById('msg').textContent=dados.length?`Contratos analisados: ${dados.length}. Exibindo: ${view.length}. Blocos localizados: ${blocosDetectados}.`:`Nenhum contrato analisado. Blocos localizados: ${blocosDetectados}.`;renderChips();renderResumoProdutos();renderResumoModelosPacotes();renderDashboardFiltros(view);renderTabela(view);renderInsights(view)}
+function alternarEntrada(){const grid=document.getElementById('layoutGrid'),panel=document.getElementById('inputPanel'),btn=document.getElementById('btnExpandir');panel.classList.toggle('leftHidden');grid.classList.toggle('full');btn.classList.toggle('hidden')}
+async function exportarImagem(){const el=document.getElementById('captureArea');const canvas=await html2canvas(el,{backgroundColor:'#fff',scale:2});const link=document.createElement('a');link.download='claro_analise_janela_24h_status.png';link.href=canvas.toDataURL('image/png');link.click()}
+function limpar(){document.getElementById('rawText').value='';document.getElementById('filter').value='';dados=[];blocosDetectados=0;dadosAtualizadosAte='';limparTodosFiltros(false);renderTudo()}
+function carregarExemplo(){document.getElementById('rawText').value=`AT5 (0) PELOTAS (PLT): 398820242 instalado em 19/Abr/2024 NODE: CRZAB AREA 1: 21/Jun 08:00 - 11:00\nENDEREÇO: R ALCIDES VELLEDA 326 CASA 10 - AREAL ABERTURA: 16/Jun 22:49:21\nVT VTA [26...0473]: 08:00 - 11:00 [Agendamento para 21/06/2026 (08:00 - 11:00)] Prazo QualiNET/Anatel: 17/06 22:49\nFLAG CONV.\n\nPELOTAS (PLT): 398756170 instalado em 04/Jul/2023 NODE: CRZAB AREA 1: 19/Jun 17:00 - 20:00\nENDEREÇO: AV DR AUGUSTO SIMOES LOPES 493 - TRES VENDAS ABERTURA: 18/Jun 18:28:18\nVT VTA [26...5003]: 17:00 - 20:00 [Agendamento para 19/06/2026 (17:00 - 20:00)] Prazo QualiNET/Anatel: 19/06 18:28\n2026-06-18 19:09:58 TECNICO: LOG 2\n\nBAGE (BGE): 306000892 instalado em 09/Fev/2005 NODE: CNTDA AREA 1: 19/Jun 08:00 - 11:00\nENDEREÇO: AV MAL FLORIANO 2011 - CENTRO ABERTURA: 18/Jun 14:56:02\nVT DIG [26...2286]: 08:00 - 11:00 [Agendamento para 19/06/2026 (08:00 - 11:00)]\nLOG 1\n\nBAGE (BGE): 306111111 instalado em 01/Jan/2020 NODE: CNTDA AREA 1: 20/Jun 17:00 - 20:00\nENDEREÇO: TESTE ABERTURA: 18/Jun 14:00:00\nVT DIG [26...9999]: 17:00 - 20:00\nLOG 3\n\n© 2006-2026 QualiNET. Todos os direitos reservados. @ndcingqln001.dcing.corp:8088/NET001PRDLNX094:3308. 06/07/2026 09:57:10`;processar()}
+document.getElementById('fileInput').addEventListener('change',async ev=>{const file=ev.target.files[0];if(!file)return;const name=file.name.toLowerCase();if(name.endsWith('.docx')){if(!window.mammoth){alert('Biblioteca DOCX não carregada. Cole o texto no campo ou use TXT.');return}const arr=await file.arrayBuffer();const result=await mammoth.extractRawText({arrayBuffer:arr});document.getElementById('rawText').value=result.value;processar()}else{document.getElementById('rawText').value=await file.text();processar()}});
+</script>
+
+<script src="./auto-loader.js"></script>
+</body>
+</html>

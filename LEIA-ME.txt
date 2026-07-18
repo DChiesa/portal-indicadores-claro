@@ -1,0 +1,24 @@
+PORTAL DE INDICADORES CLARO - ARQUIVOS PARA O GITHUB
+
+Envie TODOS os arquivos deste pacote para a raiz do mesmo repositório GitHub Pages.
+O arquivo index.html é a página principal.
+
+BASES ESPERADAS NO SUPABASE
+Bucket privado: bases-tecnico
+
+atual/at1.xlsx
+atual/qualinet.txt
+atual/tnps.xlsx
+atual/nr35.xlsx
+atual/certidao_atendimento.xlsx
+atual/quebra_total.xlsx
+atual/recomendacoes.xlsx
+atual/flag_24h.xlsx
+atual/tecnico_certificado_atual.xlsx
+
+POLÍTICA RLS NECESSÁRIA
+create policy "Usuarios autenticados podem ler bases"
+on storage.objects for select to authenticated
+using (bucket_id = 'bases-tecnico');
+
+Observação: importação manual foi preservada em todos os painéis.
