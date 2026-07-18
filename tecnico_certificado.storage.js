@@ -180,17 +180,80 @@
     }
   }
 
-  async function waitForProcessing(previousCount) {
-    const started = Date.now();
-    while (Date.now() - started < 30000) {
-      try {
-        if (typeof state !== 'undefined' && state.raw && state.raw.length > 0) {
-          if (state.raw.length !== previousCount || Date.now() - started > 1200) return state.raw.length;
-        }
-      } catch (_) {}
-      await new Promise(resolve => setTimeout(resolve, 250));
+  function processWorkbookDirect(workbook, sourceLabel) {
+    const analyticName = workbook.SheetNames.find(name => up(name) === 'ANALITICO') || workbook.SheetNames[0];
+    if (!analyticName) throw new Error('O arquivo não possui planilhas.');
+
+    const supportName = workbook.SheetNames.find(name => name !== analyticName);
+    const rows = XLSX.utils.sheet_to_json(
+      workbook.Sheets[analyticName],
+      { defval: '' }
+    ).map(normHead);
+
+    state.apoio = new Map();
+
+    if (supportName) {
+      XLSX.utils.sheet_to_json(
+        workbook.Sheets[supportName],
+        { defval: '' }
+      ).map(normHead).forEach(row => {
+        const login = up(getVal(row, COLS.login));
+        const name = norm(getVal(row, COLS.nome));
+        if (login && name) state.apoio.set(login, name);
+      });
     }
-    return null;
+
+    state.raw = rows.map(row => {
+      const login = up(getVal(row, COLS.login));
+      const serviceType = norm(getVal(row, COLS.tipo)) || 'Não informado';
+      const group = norm(getVal(row, COLS.grupo)) || 'Não informado';
+
+      return {
+        login,
+        nome: norm(getVal(row, COLS.nome)) || state.apoio.get(login) || '',
+        cidade: norm(getVal(row, COLS.cidade)) || 'Não informado',
+        dataNota: dt(getVal(row, COLS.dataNota)),
+        dataAgenda: dt(getVal(row, COLS.dataAgenda)),
+        pontos: num(getVal(row, COLS.pontos)),
+        revisita: num(getVal(row, COLS.revisita)),
+        tec1Padrao: num(getVal(row, COLS.tec1Padrao)),
+        tec1Total: num(getVal(row, COLS.tec1Total)),
+        tipoServico: serviceType,
+        grupo: group,
+        grupoResumo: grupoRes(group, serviceType),
+        contrato: norm(getVal(row, COLS.contrato)),
+        baixa: norm(getVal(row, COLS.baixa)),
+        time: norm(getVal(row, COLS.time)) || 'Não informado',
+        horaInicio: fh(getVal(row, COLS.horaInicio)),
+        horaFim: fh(getVal(row, COLS.horaFim)),
+        janelaInicial: fh(getVal(row, COLS.janelaInicial)),
+        janelaFinal: fh(getVal(row, COLS.janelaFinal)),
+        retornoCred: num(getVal(row, COLS.retorno)),
+        original: row
+      };
+    }).filter(row => row.login);
+
+    periods();
+    filters();
+    applyAll();
+
+    return state.raw.length;
+  }
+
+  async function downloadFresh(path) {
+    const bucket = getClient().storage.from(BUCKET);
+    const signed = await bucket.createSignedUrl(path, 120);
+
+    if (!signed.error && signed.data && signed.data.signedUrl) {
+      const response = await fetch(signed.data.signedUrl, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Download HTTP ' + response.status);
+      return response.blob();
+    }
+
+    const downloaded = await bucket.download(path, {}, { cache: 'no-store' });
+    if (downloaded.error) throw downloaded.error;
+    if (!downloaded.data) throw new Error('O Supabase não retornou o arquivo.');
+    return downloaded.data;
   }
 
   async function loadPath(path) {
@@ -206,39 +269,22 @@
       selectedPath = path;
       setStatus('loading', 'Baixando ' + path + '...');
 
-      let previousCount = 0;
-      try {
-        previousCount = typeof state !== 'undefined' && state.raw ? state.raw.length : 0;
-      } catch (_) {}
+      const blob = await downloadFresh(path);
+      const buffer = await blob.arrayBuffer();
+      setStatus('loading', 'Processando indicadores de ' + path.split('/').pop() + '...');
 
-      const { data, error } = await getClient()
-        .storage
-        .from(BUCKET)
-        .download(path, {}, { cache: 'no-store' });
-
-      if (error) throw error;
-      if (!data) throw new Error('O Supabase não retornou o arquivo.');
-
-      const fileName = path.split('/').pop();
-      const file = new File([data], fileName, {
-        type: data.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      const workbook = XLSX.read(buffer, {
+        type: 'array',
+        cellDates: true
       });
 
-      const input = byId('excelFile');
-      if (!input) throw new Error('Campo excelFile não encontrado no dashboard.');
-
-      const transfer = new DataTransfer();
-      transfer.items.add(file);
-      input.files = transfer.files;
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-
-      setStatus('loading', 'Processando indicadores de ' + fileName + '...');
-      const total = await waitForProcessing(previousCount);
+      const total = processWorkbookDirect(workbook, path);
+      const fileName = path.split('/').pop();
       const now = new Date().toLocaleString('pt-BR');
+
       setStatus(
         'ok',
-        (total === null ? 'Base processada' : total.toLocaleString('pt-BR') + ' registros') +
-        ' · ' + fileName + ' · ' + now
+        total.toLocaleString('pt-BR') + ' registros · ' + fileName + ' · ' + now
       );
     } catch (error) {
       console.error('Erro ao carregar base do Técnico Certificado:', error);
