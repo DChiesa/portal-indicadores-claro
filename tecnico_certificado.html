@@ -49,8 +49,6 @@ function detalheItem(r,mostrarProx=false){return`<li><b>Contrato:</b> ${r.contra
 function listaDetalhe(a,mostrarProx=false){return a.length?`<ul class="list">${a.map(r=>detalheItem(r,mostrarProx)).join('')}</ul>`:'<div class="empty">Nenhum registro.</div>'}
 function detail(){let selectedDetail=$('detailTech').value,selectedTechs=sel('techFilter'),login=selectedDetail||(selectedTechs.length===1?selectedTechs[0]:'');let el=$('techDetail');if(!login){el.className='empty';el.innerHTML=selectedTechs.length>1?'Múltiplos técnicos selecionados. Para ver detalhe individual, escolha um técnico no campo “Selecionar técnico”.':'Selecione um técnico.';return}let rs=state.filtered.filter(r=>r.login===login),m=calc(rs),rev=rs.filter(r=>r.revisita===1),tec=rs.filter(r=>num(r.tec1Total)>0&&num(r.tec1Padrao)<num(r.tec1Total));el.className='detail';el.innerHTML=`<div class="box"><h3>Revisita</h3><p><b>Total:</b> ${fmtInt(rev.length)} | <b>%:</b> ${fmtPct(m.revPct)}</p>${listaDetalhe(rev,true)}</div><div class="box"><h3>TEC1 fora padrão</h3><p><b>Padrão:</b> ${fmtInt(m.tec1Padrao)} | <b>Total TEC1:</b> ${fmtInt(m.tec1Total)} | <b>Fora padrão:</b> ${fmtInt(m.tec1SemPadrao)} | <b>TEC1:</b> ${fmtPct(m.tec1Pct)}</p>${listaDetalhe(tec,false)}</div>`}$('exportBtn').onclick=async()=>{let c=await html2canvas($('dashboard'),{scale:2,backgroundColor:'#f4f6f8',useCORS:true}),a=document.createElement('a');a.download=`dashboard_tecnicos_visual_detalhe_${new Date().toISOString().slice(0,10)}.png`;a.href=c.toDataURL('image/png');a.click()};
 </script>
-
-./tecnico_certificado.storage.js?v=200script>
-
+./tecnico_certificado.boot.js?v=400script>
 </body>
 </html>
