@@ -33,4 +33,243 @@
 <section class="panel"><h2>Diário CÓDIGO DE BAIXA - TOP 20</h2><div class="heatwrap" id="baixaHeat"></div></section>
 <section class="panel"><h2>Insights automáticos</h2><div class="insights" id="insights"><div class="empty">Carregue uma base para gerar os insights.</div></div></section>
 </main><footer class="footer"><span id="fileInfo">Nenhum arquivo carregado.</span><span class="owner">Propriedade e criação: Demétrius Chiesa · V5.0</span></footer></div>
-</body></html>
+
+<script>
+(function () {
+    'use strict';
+
+    /*
+     * Ajuste exclusivamente visual do gráfico principal.
+     * Não modifica valores, datasets, fórmulas, filtros,
+     * Supabase, projeções ou demais funcionalidades.
+     */
+    const manterGraficoDentroDaArea = {
+        id: 'manterGraficoDentroDaArea',
+
+        beforeUpdate(chart) {
+            /*
+             * Aplica o ajuste somente ao canvas:
+             * <canvas id="chart"></canvas>
+             */
+            if (!chart.canvas || chart.canvas.id !== 'chart') {
+                return;
+            }
+
+            /*
+             * Preserva qualquer padding que já esteja configurado
+             * e garante um espaço mínimo nas extremidades.
+             */
+            const layoutAtual = chart.options.layout || {};
+
+            const paddingAtual =
+                layoutAtual.padding &&
+                typeof layoutAtual.padding === 'object'
+                    ? layoutAtual.padding
+                    : {};
+
+            chart.options.layout = {
+                ...layoutAtual,
+
+                autoPadding: true,
+
+                padding: {
+                    top: Math.max(
+                        Number(paddingAtual.top) || 0,
+                        28
+                    ),
+
+                    right: Math.max(
+                        Number(paddingAtual.right) || 0,
+                        16
+                    ),
+
+                    bottom: Math.max(
+                        Number(paddingAtual.bottom) || 0,
+                        8
+                    ),
+
+                    left: Math.max(
+                        Number(paddingAtual.left) || 0,
+                        16
+                    )
+                }
+            };
+
+            /*
+             * Garante uma pequena margem antes do primeiro dia
+             * e depois do último dia.
+             */
+            if (
+                chart.options.scales &&
+                chart.options.scales.x
+            ) {
+                chart.options.scales.x.offset = true;
+            }
+
+            /*
+             * Mantém os rótulos de dados dentro da geometria
+             * visível do gráfico, caso o plugin esteja ativo.
+             */
+            if (
+                chart.options.plugins &&
+                chart.options.plugins.datalabels
+            ) {
+                chart.options.plugins.datalabels.clamp = true;
+                chart.options.plugins.datalabels.clip = false;
+            }
+        },
+
+        afterDataLimits(chart, args) {
+            /*
+             * Aplica somente ao gráfico principal.
+             */
+            if (!chart.canvas || chart.canvas.id !== 'chart') {
+                return;
+            }
+
+            const escala = args.scale;
+
+            /*
+             * Atua somente nos eixos verticais.
+             * Portanto, ajusta automaticamente tanto o eixo das
+             * barras quanto o eixo percentual da projeção.
+             */
+            if (!escala || escala.axis !== 'y') {
+                return;
+            }
+
+            const valores = [];
+
+            chart.data.datasets.forEach(
+                function (dataset, datasetIndex) {
+                    /*
+                     * Ignora datasets escondidos pela legenda.
+                     */
+                    if (
+                        typeof chart.isDatasetVisible === 'function' &&
+                        !chart.isDatasetVisible(datasetIndex)
+                    ) {
+                        return;
+                    }
+
+                    /*
+                     * Identifica a qual eixo o dataset pertence.
+                     */
+                    const eixoDoDataset =
+                        dataset.yAxisID || 'y';
+
+                    if (eixoDoDataset !== escala.id) {
+                        return;
+                    }
+
+                    /*
+                     * Coleta apenas números válidos.
+                     */
+                    (dataset.data || []).forEach(function (item) {
+                        let valor;
+
+                        if (
+                            item !== null &&
+                            typeof item === 'object'
+                        ) {
+                            valor = Number(item.y);
+                        } else {
+                            valor = Number(item);
+                        }
+
+                        if (Number.isFinite(valor)) {
+                            valores.push(valor);
+                        }
+                    });
+                }
+            );
+
+            if (!valores.length) {
+                return;
+            }
+
+            const maiorValor = Math.max(...valores);
+            const menorValor = Math.min(...valores);
+
+            /*
+             * Cria automaticamente uma folga de 22% acima do
+             * maior valor real exibido no eixo.
+             *
+             * Nenhum dado é modificado.
+             * Apenas o limite visual do eixo é ampliado.
+             */
+            if (maiorValor > 0) {
+                escala.max = maiorValor * 1.22;
+            } else {
+                escala.max = 1;
+            }
+
+            /*
+             * Mantém o início em zero quando os dados não possuem
+             * valores negativos.
+             */
+            if (menorValor >= 0) {
+                escala.min = 0;
+            }
+        }
+    };
+
+    let pluginRegistrado = false;
+    let quantidadeTentativas = 0;
+
+    /*
+     * O Chart.js é carregado pelo arquivo externo:
+     * dashboard_at1_historico.boot.js
+     *
+     * Este controle aguarda a biblioteca ficar disponível,
+     * sem interferir no carregamento do dashboard.
+     */
+    const aguardarChart = setInterval(function () {
+        quantidadeTentativas++;
+
+        if (
+            window.Chart &&
+            typeof window.Chart.register === 'function'
+        ) {
+            clearInterval(aguardarChart);
+
+            if (!pluginRegistrado) {
+                window.Chart.register(
+                    manterGraficoDentroDaArea
+                );
+
+                pluginRegistrado = true;
+            }
+
+            /*
+             * Se o gráfico já foi criado, aplica o ajuste
+             * imediatamente, sem animação e sem recriar os dados.
+             */
+            if (
+                typeof window.Chart.getChart === 'function'
+            ) {
+                const grafico =
+                    window.Chart.getChart('chart');
+
+                if (grafico) {
+                    grafico.update('none');
+                }
+            }
+
+            return;
+        }
+
+        /*
+         * Encerra a procura sem gerar erro caso o Chart.js
+         * não seja carregado.
+         */
+        if (quantidadeTentativas >= 200) {
+            clearInterval(aguardarChart);
+        }
+    }, 50);
+})();
+</script>
+
+</body>
+</html>
+
