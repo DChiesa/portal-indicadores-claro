@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#d71920">
+  <title>Técnico Certificado</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{--claro:#d71920;--claro-dark:#a90f16;--bg:#f3f5f8;--card:#fff;--text:#18212f;--muted:#667085;--line:#e3e7ee;--ok:#087f5b;--warn:#b45309;--shadow:0 6px 20px rgba(16,24,40,.08);--radius:14px}
+    *{box-sizing:border-box}
+    html{font-size:16px;-webkit-text-size-adjust:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;overflow-x:hidden}
+    button,input,select{font:inherit}
+    .app{width:min(1600px,100%);margin:auto;padding:18px}
+    .hero{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;background:linear-gradient(135deg,var(--claro),var(--claro-dark));color:#fff;border-radius:18px;box-shadow:var(--shadow)}
+    .hero h1{margin:0;font-size:clamp(1.35rem,2.3vw,2rem);letter-spacing:.02em}.hero p{margin:6px 0 0;opacity:.88;font-size:.9rem}.brand{font-weight:800;font-size:1.35rem;white-space:nowrap}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.btn{min-height:44px;border:0;border-radius:10px;padding:10px 15px;font-weight:700;cursor:pointer}.btn-primary{background:var(--claro);color:#fff}.btn-light{background:#fff;color:var(--text);border:1px solid var(--line)}.btn:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid rgba(215,25,32,.2);outline-offset:2px}
+    .status{display:none;margin:0 0 14px;padding:12px 14px;border-radius:10px;background:#fff;border-left:4px solid var(--claro);box-shadow:var(--shadow);font-size:.92rem}.status.show{display:block}.status.ok{border-color:var(--ok)}.status.error{border-color:var(--claro)}
+    .filters{display:grid;grid-template-columns:repeat(5,minmax(155px,1fr));gap:12px;background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .field{min-width:0}.field label{display:block;margin-bottom:7px;font-weight:800;font-size:.84rem}.field select,.field input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:9px 10px;color:var(--text)}.field select[multiple]{height:150px;padding:6px}.hint{margin-top:5px;color:var(--muted);font-size:.73rem}
+    .kpis{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:12px;margin:16px 0}.kpi{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border-top:4px solid var(--claro);min-width:0}.kpi .label{color:var(--muted);font-size:.78rem;font-weight:700}.kpi .value{font-size:clamp(1.45rem,2.5vw,2rem);font-weight:900;margin-top:5px;overflow-wrap:anywhere}.kpi .sub{font-size:.72rem;color:var(--muted);margin-top:3px}
+    .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px;margin-top:16px;min-width:0}.panel h2{margin:0 0 12px;font-size:1.05rem}.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;-webkit-overflow-scrolling:touch}.table{width:100%;min-width:980px;border-collapse:collapse}.table th,.table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:.8rem;white-space:nowrap}.table th{position:sticky;top:0;background:#f8fafc;z-index:1;font-size:.74rem;text-transform:uppercase}.table tr:hover td{background:#fff8f8}.pill{display:inline-block;border-radius:999px;padding:4px 8px;font-weight:800;font-size:.7rem}.pill.ok{color:#067647;background:#ecfdf3}.pill.no{color:#b42318;background:#fef3f2}
+    .empty{padding:32px 16px;text-align:center;color:var(--muted)}
+    footer{text-align:center;color:var(--muted);font-size:.76rem;padding:22px 8px}
+    #excelInput{display:none}
+    @media (max-width:1200px){.filters{grid-template-columns:repeat(3,minmax(160px,1fr))}.kpis{grid-template-columns:repeat(3,minmax(150px,1fr))}}
+    @media (max-width:768px){.app{padding:10px}.hero{align-items:flex-start;padding:18px;border-radius:14px}.brand{font-size:1rem}.toolbar{display:grid;grid-template-columns:1fr 1fr}.btn{width:100%}.filters{grid-template-columns:1fr;padding:12px}.field select[multiple]{height:180px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.kpi{padding:13px}.panel{padding:12px}.table th,.table td{padding:9px;font-size:.76rem}}
+    @media (max-width:430px){.hero{display:block}.brand{margin-top:12px}.toolbar{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kpi .value{font-size:1.35rem}.field select,.field input,.btn{font-size:16px}}
+    @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <div><h1>TÉCNICO CERTIFICADO</h1><p>Propriedade e criação: Demétrius Chiesa</p></div><div class="brand">claro</div>
+    </header>
+
+    <section class="toolbar" aria-label="Ações">
+      <label class="btn btn-primary" for="excelInput">Importar Excel</label>
+      <input id="excelInput" type="file" accept=".xlsx,.xls,.xlsb">
+      <button id="autoBtn" class="btn btn-light" type="button">Carregar arquivo do GitHub</button>
+      <button id="clearBtn" class="btn btn-light" type="button">Limpar filtros</button>
+    </section>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <section class="filters" aria-label="Filtros">
+      <div class="field"><label for="cityFilter">Cidade</label><select id="cityFilter" multiple></select><div class="hint">Seleção múltipla.</div></div>
+      <div class="field"><label for="serviceFilter">Tipo de serviço</label><select id="serviceFilter" multiple></select><div class="hint">Seleção múltipla.</div></div>
+      <div class="field"><label for="teamFilter">Time / UN</label><select id="teamFilter" multiple></select><div class="hint">Seleção múltipla.</div></div>
+      <div class="field"><label for="techFilter">Técnico</label><select id="techFilter" multiple></select><div class="hint">Exibe Nome do técnico (LOGIN).</div></div>
+      <div class="field"><label for="searchFilter">Pesquisa</label><input id="searchFilter" type="search" placeholder="Nome, login, cidade..."><div class="hint">Pesquisa na base filtrada.</div></div>
+    </section>
+
+    <section class="kpis">
+      <article class="kpi"><div class="label">Técnicos avaliados</div><div id="kpiTechs" class="value">0</div><div class="sub">Após filtros</div></article>
+      <article class="kpi"><div class="label">OS executadas</div><div id="kpiOs" class="value">0</div><div class="sub">Base filtrada</div></article>
+      <article class="kpi"><div class="label">Produção média</div><div id="kpiProd" class="value">0,00</div><div class="sub">Pontos por dia</div></article>
+      <article class="kpi"><div class="label">Revisita geral</div><div id="kpiRev" class="value">0,0%</div><div class="sub">Meta &lt; 7%</div></article>
+      <article class="kpi"><div class="label">TEC1 geral</div><div id="kpiTec1" class="value">0,0%</div><div class="sub">Padrão / Total TEC1</div></article>
+      <article class="kpi"><div class="label">Cidades</div><div id="kpiCities" class="value">0</div><div class="sub">Dentro do filtro</div></article>
+    </section>
+
+    <section class="panel">
+      <h2>Resumo principal</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Cidade</th><th>Login</th><th>Nome</th><th>Time / UN</th><th>Tipo</th><th>OS</th><th>Pontos</th><th>Revisita</th><th>TEC1</th></tr></thead>
+          <tbody id="summaryBody"><tr><td colspan="9" class="empty">Carregue a planilha para visualizar os dados.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <footer>Arquivo responsivo para celular, tablet e PC.</footer>
+  </main>
+
+<script>
+'use strict';
+const AUTO_FILE = './tecnico_certificado_atual.xlsx';
+const $ = id => document.getElementById(id);
+const state = {rows:[], filtered:[], nameMap:new Map(), fileName:''};
+const ids = ['cityFilter','serviceFilter','teamFilter','techFilter'];
+
+function normKey(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function txt(v){return String(v??'').trim()}
+function num(v){if(typeof v==='number')return Number.isFinite(v)?v:0; const s=txt(v).replace(/\s/g,'').replace(/\./g,'').replace(',','.'); const n=Number(s); return Number.isFinite(n)?n:0}
+function pick(row,names){const wanted=names.map(normKey); for(const [k,v] of Object.entries(row)){if(wanted.includes(normKey(k)) && txt(v)!=='')return v} return ''}
+function loginOf(r){return txt(pick(r,['LOGIN_TECNICO','LOGIN','LOGIN TECNICO']))}
+function cityOf(r){return txt(pick(r,['NM_MUNICIPIO','SIGLA_TOA','CIDADE','MUNICIPIO'])) || 'Não informado'}
+function teamOf(r){return txt(pick(r,['UNIDADE_NEGOCIO','UN_RESP','UNIDADE','TIME','TIME / UN'])) || 'Não informado'}
+function serviceOf(r){return txt(pick(r,['GRUPO_OS','TIPO_SERVICO','TIPO_OS','TIPO DE SERVIÇO'])) || 'Não informado'}
+function workorderOf(r){return txt(pick(r,['WORKORDER','LISTA_OS','COD_OS','OS']))}
+function pointsOf(r){return num(pick(r,['QTDE_PONTOS_NEW','QTDE_PONTOS','PONTOS']))}
+function revisitaOf(r){return num(pick(r,['QT_REVISITA','WO_REVISITA','REVISITA']))}
+function tecStdOf(r){return num(pick(r,['TOTAL_OS_TEC1_PADRAO_NEW','TOTAL_OS_TEC1_PADRAO']))}
+function tecTotOf(r){return num(pick(r,['QTD_TOTAL_OS_TEC1_NEW','QTD_TOTAL_OS_TEC1']))}
+function firstName(v){return txt(v).split(/\s+/)[0]||''}
+function cleanProvidedLabel(v,login){let s=txt(v); if(!s)return ''; const escaped=login.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); s=s.replace(new RegExp('\\s*\\(?'+escaped+'\\)?\\s*$','i'),'').trim(); return s}
+function nameOfLogin(login){return state.nameMap.get(normKey(login)) || ''}
+function displayTech(login){const name=nameOfLogin(login); return name ? `${name} (${login})` : login}
+
+function showStatus(message,type=''){const el=$('status');el.textContent=message;el.className=`status show ${type}`}
+function hideStatus(){$('status').className='status'}
+function selected(id){return [...$(id).selectedOptions].map(o=>o.value)}
+function unique(values){return [...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}))}
+function setOptions(id,values,labelFn=v=>v,preserve=true){const el=$(id), prev=preserve?selected(id):[]; el.innerHTML=''; values.forEach(v=>{const o=new Option(labelFn(v),v);o.selected=prev.includes(v);el.add(o)})}
+
+function buildNameMap(workbook){
+  state.nameMap.clear();
+  workbook.SheetNames.forEach(sheetName=>{
+    const rows=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{defval:'',raw:false});
+    rows.forEach(r=>{
+      const login=txt(pick(r,['LOGIN','LOGIN_TECNICO','LOGIN TECNICO']));
+      if(!login)return;
+      const full=txt(pick(r,['NOME COMPLETO TECNICO','NOME COMPLETO TÉCNICO','NOME_COMPLETO_TECNICO']));
+      const provided=cleanProvidedLabel(pick(r,['NOME +LOGIN','NOME + LOGIN','NOME+LOGIN']),login);
+      const short=txt(pick(r,['NOME','TECNICO','TÉCNICO','NOME_TECNICO']));
+      const name=full||provided||short;
+      if(name)state.nameMap.set(normKey(login),name);
+    });
+  });
+}
+
+function findAnalyticSheet(workbook){
+  const scored=workbook.SheetNames.map(name=>{const rows=XLSX.utils.sheet_to_json(workbook.Sheets[name],{defval:'',raw:true});const sample=rows[0]||{};const keys=Object.keys(sample).map(normKey);let score=rows.length; if(keys.includes('LOGINTECNICO'))score+=100000; if(keys.includes('WORKORDER'))score+=50000; return {name,rows,score}}); return scored.sort((a,b)=>b.score-a.score)[0];
+}
+
+function loadWorkbook(data,fileName){
+  try{
+    const wb=XLSX.read(data,{type:data instanceof ArrayBuffer?'array':'binary',cellDates:true});
+    buildNameMap(wb);
+    const analytic=findAnalyticSheet(wb);
+    if(!analytic||!analytic.rows.length)throw new Error('Nenhuma aba com dados foi encontrada.');
+    state.rows=analytic.rows.filter(r=>loginOf(r));state.fileName=fileName;
+    if(!state.rows.length)throw new Error('A coluna LOGIN_TECNICO/LOGIN não foi encontrada na base.');
+    populateBaseFilters(false);applyFilters();
+    showStatus(`${fileName} carregado: ${state.rows.length.toLocaleString('pt-BR')} registros e ${state.nameMap.size.toLocaleString('pt-BR')} nomes associados.`, 'ok');
+  }catch(err){showStatus(`Não foi possível processar o arquivo: ${err.message}`,'error')}
+}
+
+function populateBaseFilters(preserve=true){
+  setOptions('cityFilter',unique(state.rows.map(cityOf)),v=>v,preserve);
+  setOptions('serviceFilter',unique(state.rows.map(serviceOf)),v=>v,preserve);
+  setOptions('teamFilter',unique(state.rows.map(teamOf)),v=>v,preserve);
+  refreshTechFilter(preserve);
+}
+function refreshTechFilter(preserve=true){
+  const cities=selected('cityFilter'),services=selected('serviceFilter'),teams=selected('teamFilter');
+  const base=state.rows.filter(r=>(!cities.length||cities.includes(cityOf(r)))&&(!services.length||services.includes(serviceOf(r)))&&(!teams.length||teams.includes(teamOf(r))));
+  const logins=unique(base.map(loginOf));setOptions('techFilter',logins,displayTech,preserve);
+}
+
+function applyFilters(){
+  refreshTechFilter(true);
+  const cities=selected('cityFilter'),services=selected('serviceFilter'),teams=selected('teamFilter'),techs=selected('techFilter');
+  const q=normKey($('searchFilter').value);
+  state.filtered=state.rows.filter(r=>{
+    const login=loginOf(r), hay=normKey([cityOf(r),serviceOf(r),teamOf(r),login,nameOfLogin(login)].join(' '));
+    return (!cities.length||cities.includes(cityOf(r)))&&(!services.length||services.includes(serviceOf(r)))&&(!teams.length||teams.includes(teamOf(r)))&&(!techs.length||techs.includes(login))&&(!q||hay.includes(q));
+  });
+  render();
+}
+
+function render(){
+  const rows=state.filtered,logins=unique(rows.map(loginOf));
+  const os=unique(rows.map(workorderOf)).length||rows.length;
+  const days=unique(rows.map(r=>txt(pick(r,['DATA_NOTA','INICIO_TRABALHO','DAT_ULTIMA_ALTERACAO_OS'])))).length;
+  const points=rows.reduce((s,r)=>s+pointsOf(r),0),rev=rows.reduce((s,r)=>s+revisitaOf(r),0),std=rows.reduce((s,r)=>s+tecStdOf(r),0),tot=rows.reduce((s,r)=>s+tecTotOf(r),0);
+  $('kpiTechs').textContent=logins.length.toLocaleString('pt-BR');$('kpiOs').textContent=os.toLocaleString('pt-BR');$('kpiProd').textContent=(days?points/days:0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});$('kpiRev').textContent=(os?rev/os*100:0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';$('kpiTec1').textContent=(tot?std/tot*100:0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';$('kpiCities').textContent=unique(rows.map(cityOf)).length.toLocaleString('pt-BR');
+  const grouped=new Map();
+  rows.forEach(r=>{const login=loginOf(r),key=[cityOf(r),login,teamOf(r),serviceOf(r)].join('|');if(!grouped.has(key))grouped.set(key,{city:cityOf(r),login,name:nameOfLogin(login),team:teamOf(r),service:serviceOf(r),os:new Set(),count:0,points:0,rev:0,std:0,tot:0});const g=grouped.get(key);g.count++;if(workorderOf(r))g.os.add(workorderOf(r));g.points+=pointsOf(r);g.rev+=revisitaOf(r);g.std+=tecStdOf(r);g.tot+=tecTotOf(r)});
+  const body=$('summaryBody');body.innerHTML='';
+  if(!grouped.size){body.innerHTML='<tr><td colspan="9" class="empty">Nenhum registro para os filtros selecionados.</td></tr>';return}
+  [...grouped.values()].sort((a,b)=>(a.name||a.login).localeCompare(b.name||b.login,'pt-BR')).forEach(g=>{const totalOs=g.os.size||g.count,revPct=totalOs?g.rev/totalOs*100:0,tecPct=g.tot?g.std/g.tot*100:0;const tr=document.createElement('tr');[g.city,g.login,g.name||'Nome não localizado',g.team,g.service,totalOs.toLocaleString('pt-BR'),g.points.toLocaleString('pt-BR',{maximumFractionDigits:2}),revPct.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%',tecPct.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'].forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;if(i===7||i===8){const good=i===7?revPct<7:tecPct>=95;td.innerHTML=`<span class="pill ${good?'ok':'no'}">${v}</span>`}tr.appendChild(td)});body.appendChild(tr)});
+}
+
+async function autoLoad(){
+  try{showStatus(`Procurando ${AUTO_FILE} no mesmo diretório do HTML...`);const response=await fetch(AUTO_FILE,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);loadWorkbook(await response.arrayBuffer(),AUTO_FILE.replace('./',''))}catch(err){showStatus(`Arquivo automático não encontrado. Coloque tecnico_certificado_atual.xlsx na mesma pasta do HTML ou use “Importar Excel”. (${err.message})`,'error')}
+}
+
+$('excelInput').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>loadWorkbook(ev.target.result,file.name);reader.readAsArrayBuffer(file)});
+$('autoBtn').addEventListener('click',autoLoad);$('clearBtn').addEventListener('click',()=>{ids.forEach(id=>[...$(id).options].forEach(o=>o.selected=false));$('searchFilter').value='';applyFilters()});
+ids.forEach(id=>$(id).addEventListener('change',applyFilters));$('searchFilter').addEventListener('input',applyFilters);
+window.addEventListener('DOMContentLoaded',()=>{if(location.protocol.startsWith('http'))autoLoad();else showStatus('Selecione a planilha no botão “Importar Excel”.')});
+</script>
+</body>
+</html>
