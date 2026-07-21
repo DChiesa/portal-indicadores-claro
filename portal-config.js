@@ -13,6 +13,7 @@ window.PORTAL_CONFIG = Object.freeze({
     "painel_recomendacoes.html": "atual/recomendacoes.xlsx",
     "relatorio_flag_24h_graf_diario.html": "atual/flag_24h.xlsx",
     "tecnico_certificado.html": "atual/tecnico_certificado_atual.xlsx"
+    "relatorio_manifestos_rrs.html": "atual/MANIF RRS.xlsx"
   })
 });
 window.APP_CONFIG = Object.freeze({
