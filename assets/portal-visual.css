@@ -1,0 +1,128 @@
+/*
+  Camada visual do Portal de Indicadores
+  Arquivo isolado: nao altera autenticacao, Supabase, links, IDs ou funcoes existentes.
+*/
+:root {
+  --portal-claro-red: #e30613;
+  --portal-claro-red-dark: #b80013;
+  --portal-text: #111827;
+  --portal-muted: #667085;
+}
+
+html { min-height: 100%; }
+body.portal-visual-ready {
+  min-height: 100vh;
+  margin: 0;
+  background-color: #071024 !important;
+  background-image:
+    linear-gradient(rgba(3, 8, 24, .72), rgba(3, 8, 24, .82)),
+    url("fundo-portal.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+body.portal-visual-ready main,
+body.portal-visual-ready .main,
+body.portal-visual-ready .content,
+body.portal-visual-ready .container-main {
+  background: transparent !important;
+}
+body.portal-visual-ready h1,
+body.portal-visual-ready h2,
+body.portal-visual-ready h3,
+body.portal-visual-ready .page-title,
+body.portal-visual-ready .section-title {
+  color: #fff;
+  text-shadow: 0 2px 9px rgba(0,0,0,.7);
+}
+
+/* Grade criada apenas quando o JS encontra os cards existentes */
+.portal-cards-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+}
+
+.portal-indicator-card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  min-height: 232px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  color: var(--portal-text) !important;
+  text-decoration: none !important;
+  background: rgba(255,255,255,.96) !important;
+  border: 1px solid rgba(255,255,255,.58) !important;
+  border-radius: 17px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.28) !important;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease !important;
+}
+.portal-indicator-card:hover,
+.portal-indicator-card:focus-visible {
+  transform: translateY(-6px) !important;
+  border-color: var(--portal-claro-red) !important;
+  box-shadow: 0 18px 40px rgba(0,0,0,.38), 0 0 0 2px rgba(227,6,19,.24) !important;
+  outline: none !important;
+}
+.portal-card-thumbnail {
+  width: 100%;
+  height: 132px;
+  flex: 0 0 132px;
+  background-color: #eaf0f6;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 3px solid var(--portal-claro-red);
+  transition: transform .28s ease, filter .28s ease;
+}
+.portal-indicator-card:hover .portal-card-thumbnail { filter: saturate(1.08); }
+.portal-card-original-content {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  gap: 10px !important;
+  padding: 14px 16px 16px !important;
+  color: var(--portal-text) !important;
+  background: transparent !important;
+}
+.portal-card-original-content * { max-width: 100%; }
+.portal-card-open-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(227,6,19,.94);
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  font: 800 20px/1 Arial, sans-serif;
+  pointer-events: none;
+}
+
+/* Mantem o cabecalho existente; apenas reforca a sombra */
+body.portal-visual-ready header,
+body.portal-visual-ready .header,
+body.portal-visual-ready .topbar,
+body.portal-visual-ready .navbar {
+  box-shadow: 0 5px 20px rgba(0,0,0,.34);
+}
+
+@media (max-width: 1150px) {
+  .portal-cards-grid { grid-template-columns: repeat(3, minmax(210px, 1fr)) !important; }
+}
+@media (max-width: 850px) {
+  .portal-cards-grid { grid-template-columns: repeat(2, minmax(205px, 1fr)) !important; }
+}
+@media (max-width: 560px) {
+  body.portal-visual-ready { background-attachment: scroll !important; }
+  .portal-cards-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+  .portal-indicator-card { min-height: 218px !important; }
+  .portal-card-thumbnail { height: 124px; flex-basis: 124px; }
+}
