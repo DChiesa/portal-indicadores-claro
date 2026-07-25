@@ -41,11 +41,15 @@ function renderMarkers(){
   const list=visibleEvents().sort((a,b)=>a.date.localeCompare(b.date)||a.title.localeCompare(b.title,'pt-BR'));
   const daySlots={};
   layer.innerHTML=list.map(e=>{
-    const d=Math.max(1,Math.min(p.days,Number(String(e.date).slice(8,10))||1));
-    const slot=daySlots[d]||0;daySlots[d]=slot+1;
+    const d1=Math.max(1,Math.min(p.days,Number(String(e.date).slice(8,10))||1));
+    const d2=Math.max(1,Math.min(p.days,Number(String(e.endDate||e.date).slice(8,10))||d1));
+    const slot=daySlots[d1]||0;daySlots[d1]=slot+1;
     const stem=Math.max(72,110+slot*38);
-    const x=xPixel(d);
-    return `<div class="diary-marker" data-id="${esc(e.id)}" style="left:${x}px;bottom:${baseBottom}px;--event:${esc(e.color)};--stem:${stem}px" title="${esc(e.title)}"><span class="bubble">${esc(e.title)}</span><span class="stem"></span><span class="diary-anchor"></span></div>`;
+    const x1=xPixel(d1),x2=xPixel(d2);
+    if(d2>d1){
+      return `<div class="diary-period-v4" data-id="${esc(e.id)}" style="left:${x1}px;width:${Math.max(4,x2-x1)}px;bottom:${baseBottom}px;--event:${esc(e.color)};--stem:${stem}px" title="${esc(e.title)}"><span class="period-bubble">${esc(e.title)}</span><span class="period-start"></span><span class="period-line"></span><span class="period-end"></span></div>`;
+    }
+    return `<div class="diary-marker" data-id="${esc(e.id)}" style="left:${x1}px;bottom:${baseBottom}px;--event:${esc(e.color)};--stem:${stem}px" title="${esc(e.title)}"><span class="bubble">${esc(e.title)}</span><span class="stem"></span><span class="diary-anchor"></span></div>`;
   }).join('');
   layer.querySelectorAll('[data-id]').forEach(m=>m.onclick=()=>openEvent(m.dataset.id));
 }
