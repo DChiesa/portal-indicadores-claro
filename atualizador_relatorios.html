@@ -8,31 +8,115 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root{--claro-red:#e30613;--rd:#a6000d;--blue:#214f79;--blue2:#102847;--line:#d7deea;--muted:#667085;--ink:#172033}
-    *{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fb;color:var(--ink)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fb;color:var(--ink)}
     header{background:linear-gradient(100deg,var(--rd),var(--claro-red));color:#fff;padding:16px 22px;font-weight:900;display:flex;align-items:center;justify-content:space-between}
-    main{max-width:1100px;margin:24px auto;padding:0 16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+    main{max-width:1100px;margin:24px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
     .card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-    .title{font-weight:900;font-size:18px;margin-bottom:4px}.meta{color:var(--muted);font-size:12px;margin-bottom:12px}.small{font-size:12px;color:var(--muted)}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:11px;padding:10px 12px;font-weight:850;cursor:pointer}.btn-current{background:var(--blue);color:#fff}.btn-history{background:var(--claro-red);color:#fff}.btn:disabled{opacity:.35;cursor:not-allowed}
-    input[type=file]{display:block;margin:10px 0;max-width:100%}.warn{background:#fff7e6;border:1px solid #ffd591;color:#7a4b00;border-radius:12px;padding:12px;margin-bottom:14px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px;margin-bottom:14px}.err{background:#fff1f3;border:1px solid #fecdd6;color:#b42318;border-radius:12px;padding:12px;margin-bottom:14px}
+    .title{font-weight:900;font-size:18px;margin-bottom:4px}
+    .meta{color:var(--muted);font-size:12px;margin-bottom:12px}
+    .small{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:0;border-radius:11px;padding:10px 12px;font-weight:850;cursor:pointer}
+    .btn-current{background:var(--blue);color:#fff}
+    .btn-history{background:var(--claro-red);color:#fff}
+    .btn:disabled{opacity:.35;cursor:not-allowed}
+    input[type=file]{display:block;margin:10px 0;max-width:100%}
+    .warn{background:#fff7e6;border:1px solid #ffd591;color:#7a4b00;border-radius:12px;padding:12px;margin-bottom:14px}
+    .ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px;margin-bottom:14px}
+    .err{background:#fff1f3;border:1px solid #fecdd6;color:#b42318;border-radius:12px;padding:12px;margin-bottom:14px}
   </style>
 </head>
 <body>
-<header><div>Central de Atualização</div><button onclick="history.back()" style="border:0;border-radius:10px;padding:9px 12px;font-weight:850;">Voltar</button></header>
-<main><div id="msg" class="warn">Carregando permissões...</div><div id="list" class="grid"></div></main>
+<header>
+  <div>Central de Atualização</div>
+  <button onclick="history.back()" style="border:0;border-radius:10px;padding:9px 12px;font-weight:850;">Voltar</button>
+</header>
+<main>
+  <div id="msg" class="warn">Carregando permissões...</div>
+  <div id="list" class="grid"></div>
+</main>
 <script>
 (function(){
   'use strict';
   const C=window.PORTAL_CONFIG||{};
   const BUCKET='bases-tecnico';
-  const msg=document.getElementById('msg'),list=document.getElementById('list');
+  const msg=document.getElementById('msg');
+  const list=document.getElementById('list');
   let sb=null;
+
   function setMsg(t,cls){msg.className=cls||'warn';msg.textContent=t;}
-  function client(){if(!sb){if(!window.supabase||!window.supabase.createClient){throw Error('Biblioteca Supabase não carregou.');}sb=window.supabase.createClient(C.SUPABASE_URL,C.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});}return sb;}
-  async function emailAtual(){const r=await client().auth.getUser();return r?.data?.user?.email||'';}
-  async function carregar(){try{const email=await emailAtual();if(!email){setMsg('Usuário não identificado. Faça login novamente.','err');return;}let {data,error}=await client().rpc('portal_get_update_permissions',{p_email:email});if(error){setMsg('Erro ao carregar permissões: '+error.message,'err');return;}data=data||[];if(!data.length){setMsg('Seu login não possui relatórios liberados para atualização.','err');return;}setMsg('Selecione o arquivo conforme o relatório liberado para seu login.','ok');list.innerHTML='';data.forEach(p=>list.appendChild(criarCard(p)));}catch(e){setMsg(e.message||String(e),'err');}}
-  function criarCard(p){const div=document.createElement('div');div.className='card';div.innerHTML=`<div class="title">${p.report_title}</div><div class="meta">${p.category_key} • ${p.current_path||''}</div><div class="small">Atual: ${p.can_update_current?'liberado':'bloqueado'} | Histórico: ${p.can_update_history?'liberado':'bloqueado'}</div><input type="file" accept=".xlsx,.xls,.csv" /><div class="actions"><button class="btn btn-current" ${p.can_update_current?'':'disabled'}>Enviar Atual</button><button class="btn btn-history" ${p.can_update_history?'':'disabled'}>Enviar Histórico</button></div><div class="small status"></div>`;const input=div.querySelector('input'),status=div.querySelector('.status');div.querySelector('.btn-current').onclick=()=>upload(p,input.files[0],'current',status);div.querySelector('.btn-history').onclick=()=>upload(p,input.files[0],'history',status);return div;}
-  async function upload(p,file,tipo,status){if(!file){status.textContent='Selecione um arquivo primeiro.';return;}const destinoBase=tipo==='current'?p.current_path:p.history_path;if(!destinoBase){status.textContent='Caminho de destino não configurado.';return;}let path=destinoBase;if(tipo==='history'){const stamp=new Date().toISOString().slice(0,10);path=destinoBase.replace(/\/$/,'')+'/'+stamp+'_'+file.name;}if(tipo==='current'&&file.name.toLowerCase()!==String(destinoBase).split('/').pop().toLowerCase()){status.textContent='Impossível carregar arquivo, verifique nome ou formato.';return;}status.textContent='Enviando...';const {error}=await client().storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'60'});status.textContent=error?('Erro: '+error.message):'Arquivo enviado com sucesso.';}
+
+  function client(){
+    if(!sb){
+      if(!window.supabase||!window.supabase.createClient){throw Error('Biblioteca Supabase não carregou.');}
+      sb=window.supabase.createClient(
+        C.SUPABASE_URL,
+        C.SUPABASE_PUBLISHABLE_KEY,
+        {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+      );
+    }
+    return sb;
+  }
+
+  async function emailAtual(){
+    const r=await client().auth.getUser();
+    return r?.data?.user?.email||'';
+  }
+
+  async function carregar(){
+    try{
+      const email=await emailAtual();
+      if(!email){setMsg('Usuário não identificado. Faça login novamente.','err');return;}
+      let {data,error}=await client().rpc('portal_get_update_permissions',{p_email:email});
+      if(error){setMsg('Erro ao carregar permissões: '+error.message,'err');return;}
+      data=data||[];
+      if(!data.length){setMsg('Seu login não possui relatórios liberados para atualização.','err');return;}
+      setMsg('Selecione o arquivo conforme o relatório liberado para seu login.','ok');
+      list.innerHTML='';
+      data.forEach(p=>list.appendChild(criarCard(p)));
+    }catch(e){setMsg(e.message||String(e),'err');}
+  }
+
+  function criarCard(p){
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`
+      <div class="title">${p.report_title}</div>
+      <div class="meta">${p.category_key} • ${p.current_path||''}</div>
+      <div class="small">Atual: ${p.can_update_current?'liberado':'bloqueado'} | Histórico: ${p.can_update_history?'liberado':'bloqueado'}</div>
+      <input type="file" accept=".xlsx,.xls,.csv" />
+      <div class="actions">
+        <button class="btn btn-current" ${p.can_update_current?'':'disabled'}>Enviar Atual</button>
+        <button class="btn btn-history" ${p.can_update_history?'':'disabled'}>Enviar Histórico</button>
+      </div>
+      <div class="small status"></div>`;
+    const input=div.querySelector('input');
+    const status=div.querySelector('.status');
+    div.querySelector('.btn-current').onclick=()=>upload(p,input.files[0],'current',status);
+    div.querySelector('.btn-history').onclick=()=>upload(p,input.files[0],'history',status);
+    return div;
+  }
+
+  async function upload(p,file,tipo,status){
+    if(!file){status.textContent='Selecione um arquivo primeiro.';return;}
+    const destinoBase=tipo==='current'?p.current_path:p.history_path;
+    if(!destinoBase){status.textContent='Caminho de destino não configurado.';return;}
+    let path=destinoBase;
+    if(tipo==='history'){
+      const stamp=new Date().toISOString().slice(0,10);
+      path=destinoBase.replace(/\/$/,'')+'/'+stamp+'_'+file.name;
+    }
+    if(tipo==='current'&&file.name.toLowerCase()!==String(destinoBase).split('/').pop().toLowerCase()){
+      status.textContent='Impossível carregar arquivo, verifique nome ou formato.';
+      return;
+    }
+    status.textContent='Enviando...';
+    const {error}=await client().storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'60'});
+    status.textContent=error?('Erro: '+error.message):'Arquivo enviado com sucesso.';
+  }
+
   carregar();
 })();
 </script>
