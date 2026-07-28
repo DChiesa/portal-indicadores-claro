@@ -14,22 +14,59 @@
     return '';
   }
 
+  function contextosDisponiveis(){
+    const lista=[window];
+    try{if(window.parent&&window.parent!==window)lista.push(window.parent)}catch(e){}
+    try{if(window.top&&window.top!==window&&!lista.includes(window.top))lista.push(window.top)}catch(e){}
+    return lista;
+  }
+
+  function clienteEmContexto(ctx){
+    const nomes=['supabaseClient','supabase_cliente','supabaseCliente','sb','_supabase','portalSupabase','clientSupabase'];
+    for(const nome of nomes){
+      try{const c=ctx[nome];if(c&&typeof c.from==='function'&&c.storage)return c}catch(e){}
+    }
+    try{
+      for(const nome of Object.getOwnPropertyNames(ctx)){
+        let c=null;
+        try{c=ctx[nome]}catch(e){continue}
+        if(c&&typeof c==='object'&&typeof c.from==='function'&&c.storage&&c.auth)return c;
+      }
+    }catch(e){}
+    return null;
+  }
+
+  function credenciaisEmContexto(ctx){
+    const objetos=[];
+    try{objetos.push(ctx)}catch(e){}
+    for(const nome of ['PORTAL_CONFIG','portalConfig','SUPABASE_CONFIG','supabaseConfig','config','CONFIG']){
+      try{if(ctx[nome]&&typeof ctx[nome]==='object')objetos.push(ctx[nome])}catch(e){}
+    }
+    let url='',chave='';
+    for(const obj of objetos){
+      url=url||textoConfig(obj,'SUPABASE_URL','supabaseUrl','supabase_url','url');
+      chave=chave||textoConfig(obj,'SUPABASE_ANON_KEY','SUPABASE_KEY','supabaseAnonKey','supabaseKey','anonKey','anon_key','key');
+    }
+    return {url,chave};
+  }
+
   function obterCliente(){
     if(cliente&&typeof cliente.from==='function')return cliente;
-    const candidatos=[window.supabaseClient,window.supabase_cliente,window.sb,window._supabase,window.portalSupabase,window.supabase?.client];
-    cliente=candidatos.find(c=>c&&typeof c.from==='function'&&c.storage)||null;
-    if(cliente)return cliente;
-
-    const cfg=window.PORTAL_CONFIG||window.portalConfig||window.SUPABASE_CONFIG||window.config||{};
-    let url=textoConfig(window,'SUPABASE_URL','supabaseUrl');
-    let chave=textoConfig(window,'SUPABASE_ANON_KEY','SUPABASE_KEY','supabaseAnonKey');
-    try{url=url||(typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'')}catch(e){}
-    try{chave=chave||(typeof SUPABASE_ANON_KEY!=='undefined'?SUPABASE_ANON_KEY:'')||(typeof SUPABASE_KEY!=='undefined'?SUPABASE_KEY:'')}catch(e){}
-    url=url||textoConfig(cfg,'SUPABASE_URL','supabaseUrl','url');
-    chave=chave||textoConfig(cfg,'SUPABASE_ANON_KEY','SUPABASE_KEY','supabaseAnonKey','anonKey','key');
-    if(url&&chave&&window.supabase?.createClient){
-      cliente=window.supabase.createClient(url,chave,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const contextos=contextosDisponiveis();
+    for(const ctx of contextos){
+      cliente=clienteEmContexto(ctx);
+      if(cliente)return cliente;
     }
+
+    let url='',chave='';
+    for(const ctx of contextos){
+      const cred=credenciaisEmContexto(ctx);
+      url=url||cred.url;chave=chave||cred.chave;
+      try{url=url||(typeof ctx.SUPABASE_URL==='string'?ctx.SUPABASE_URL:'')}catch(e){}
+      try{chave=chave||(typeof ctx.SUPABASE_ANON_KEY==='string'?ctx.SUPABASE_ANON_KEY:'')||(typeof ctx.SUPABASE_KEY==='string'?ctx.SUPABASE_KEY:'')}catch(e){}
+    }
+    const fabrica=contextos.map(ctx=>{try{return ctx.supabase}catch(e){return null}}).find(x=>x&&typeof x.createClient==='function');
+    if(url&&chave&&fabrica)cliente=fabrica.createClient(url,chave,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     return cliente;
   }
 
