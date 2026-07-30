@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Resultados Tecnicos - Acesso</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f1f5f9;font-family:Segoe UI,Arial,sans-serif;color:#0f172a}.card{width:min(410px,92vw);background:#fff;border:1px solid #d9e2ec;border-radius:20px;padding:28px;box-shadow:0 18px 45px #0f172a1f}.logo{width:66px;height:66px;margin:0 auto 20px;border-radius:50%;display:grid;place-items:center;background:#e30613;color:#fff;font-weight:900}.card h1{text-align:center;margin:0;font-size:28px}.sub{text-align:center;color:#64748b;margin:10px 0 24px}.field{display:block;margin:14px 0 7px;font-weight:650;font-size:14px}.input{width:100%;height:46px;border:1px solid #cbd5e1;border-radius:10px;padding:0 13px;font-size:15px;outline:none}.input:focus{border-color:#e30613;box-shadow:0 0 0 3px #e3061320}.btn{width:100%;height:48px;margin-top:18px;border:0;border-radius:10px;background:#e30613;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.btn:disabled{opacity:.65;cursor:wait}.msg{display:none;margin-top:12px;padding:11px;border-radius:9px;font-size:14px}.msg.err{display:block;background:#fee2e2;color:#b91c1c}.msg.ok{display:block;background:#dcfce7;color:#166534}.links{display:flex;justify-content:center;margin-top:18px;font-size:13px}.links a{color:#334155}.small{text-align:center;color:#94a3b8;font-size:11px;margin-top:18px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">claro</div>
+    <h1>Resultados Tecnicos</h1>
+    <p class="sub">Acesso individual e seguro</p>
+    <form id="loginForm">
+      <label class="field" for="email">E-mail</label>
+      <input class="input" id="email" type="email" autocomplete="username" required>
+      <label class="field" for="password">Senha</label>
+      <input class="input" id="password" type="password" autocomplete="current-password" required>
+      <button class="btn" id="submitBtn" type="submit">Entrar no app</button>
+      <div class="msg" id="message" role="alert"></div>
+    </form>
+    <div class="links"><a href="../">Entrar pelo portal completo</a></div>
+    <div class="small">Propriedade e criacao: Demetrius Chiesa</div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (function(){
+    'use strict';
+    const SUPABASE_URL='https://frxfoztyctrvsobbawmo.supabase.co';
+    const SUPABASE_KEY='sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL';
+    const DESTINO='../index.html?abrir=resultado_tecnico';
+    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const form=document.getElementById('loginForm'),button=document.getElementById('submitBtn'),message=document.getElementById('message');
+    function show(text,type){message.textContent=text;message.className='msg '+type}
+    function go(){location.replace(DESTINO)}
+    async function resume(){
+      const {data,error}=await client.auth.getSession();
+      if(!error&&data.session){show('Sessao identificada. Abrindo o app...','ok');go()}
+    }
+    form.addEventListener('submit',async function(e){
+      e.preventDefault();button.disabled=true;button.textContent='Autenticando...';message.className='msg';
+      const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+      const {error}=await client.auth.signInWithPassword({email,password});
+      if(error){show(error.message==='Invalid login credentials'?'E-mail ou senha invalidos.':error.message,'err');button.disabled=false;button.textContent='Entrar no app';return}
+      show('Login realizado. Abrindo o app...','ok');go();
+    });
+    resume();
+  })();
+  </script>
+</body>
+</html>
