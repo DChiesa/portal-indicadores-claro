@@ -26,17 +26,22 @@ async function carregar(){
   if(r.error){setMsg('Erro ao carregar permissões: '+r.error.message,'err');return}
   let rows=(r.data||[]).map(x=>({...x}));
   if(admin){
-   const pag=await client().rpc('listar_minhas_paginas_portal');
+   const pag=await client().rpc('portal_admin_list_reports');
    if(!pag.error){
     const existentes=new Set(rows.map(chaveLinha));
     for(const p of (pag.data||[])){
+     if(p.ativo===false)continue;
+     const codigo=slugArquivo(p.codigo||p.nome||p.storage_path||'relatorio');
+     const nome=normalizar(p.nome||p.titulo||p.codigo);
+     if(codigo==='consulta_codigo_baixa'||nome==='consulta codigo baixa')continue;
+     if((codigo==='dashboard_at1_historico'||codigo==='at1_historico'||nome==='at1 historico')&&rows.some(x=>normalizar(x.current_path)==='atual/at1.xlsx'))continue;
      const key=chaveLinha(p);
      if(!key||existentes.has(key))continue;
-     const current=caminhoAutomatico(p);
-     rows.push({report_key:p.codigo||slugArquivo(p.arquivo||p.nome),report_title:p.nome||p.titulo||p.arquivo,category_key:p.categoria||'manutencao',current_path:current,history_path:'historico/'+(slugArquivo(p.arquivo||p.nome)||'relatorio'),can_update_current:true,can_update_history:true,arquivo:p.arquivo});
+     const current=C?.FILES?.[String(p.arquivo||'').split('/').pop()]||'atual/'+codigo+'.xlsx';
+     rows.push({report_key:p.codigo||codigo,report_title:p.nome||p.titulo||p.codigo,category_key:p.categoria||'manutencao',current_path:current,history_path:'historico/'+codigo,can_update_current:true,can_update_history:true,arquivo:p.arquivo});
      existentes.add(key);
     }
-   }
+   }else console.warn('Lista automatica de relatorios:',pag.error);
   }
   $('topStatus').textContent='Carregado';
   if(!rows.length){setMsg('Seu login não possui relatórios liberados para atualização.','err');return}
