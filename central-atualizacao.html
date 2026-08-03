@@ -39,8 +39,20 @@
   const norm = v => String(v||'').trim().toLowerCase();
   const isDemetrius = e => DEMETRIUS.some(x => norm(e) === norm(x) || norm(e).includes(norm(x)));
   function setMsg(t,cls){ msg.className=cls||'warn'; msg.textContent=t; }
+  async function recuperarSessaoDoPortal(){
+    let s=(await supabaseClient.auth.getSession()).data.session;
+    if(s||window.parent===window)return s;
+    return await new Promise(resolve=>{
+      let finalizado=false;
+      const concluir=v=>{if(finalizado)return;finalizado=true;clearTimeout(timer);window.removeEventListener('message',receber);resolve(v)};
+      const receber=async e=>{if(e.origin!==location.origin||e.source!==window.parent||e.data?.type!=='PORTAL_SESSION_RESPONSE')return;try{const r=await supabaseClient.auth.setSession({access_token:e.data.access_token,refresh_token:e.data.refresh_token});concluir(r.data.session||null)}catch(_){concluir(null)}};
+      window.addEventListener('message',receber);
+      const timer=setTimeout(()=>concluir(null),2500);
+      window.parent.postMessage({type:'PORTAL_SESSION_REQUEST'},location.origin);
+    });
+  }
   async function emailAtual(){
-    try{ const r = await supabaseClient.auth.getUser(); return r?.data?.user?.email || ''; }catch(e){ return ''; }
+    try{const s=await recuperarSessaoDoPortal();return s?.user?.email||'';}catch(e){return '';}
   }
   async function carregar(){
     if(!window.supabase){ setMsg('Supabase não encontrado nesta página. Inclua aqui o mesmo script/configuração Supabase usado no index.html.','err'); return; }
