@@ -2,6 +2,8 @@ window.PORTAL_CONFIG=Object.freeze({
   SUPABASE_URL:'https://frxfoztyctrvsobbawmo.supabase.co',
   SUPABASE_PUBLISHABLE_KEY:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
   BUCKET:'bases-tecnico',
+  REPORTS_BUCKET:'portal-html',
+  GITHUB_SYNC_FUNCTION:'github-report-sync',
   AUTO_REFRESH_MS:300000,
   FILES:Object.freeze({
     'dashboard_at1_historico.html':'atual/at1.xlsx',
