@@ -16,6 +16,8 @@
     .actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}.btn-current{background:var(--blue);color:#fff}.btn-history{background:var(--claro-red);color:#fff}.btn:disabled{opacity:.35;cursor:not-allowed}
     input[type=file]{display:block;margin:10px 0;max-width:100%}.warn{background:#fff7e6;border:1px solid #ffd591;color:#7a4b00;border-radius:12px;padding:12px;margin-bottom:14px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px;margin-bottom:14px}.err{background:#fff1f3;border:1px solid #fecdd6;color:#b42318;border-radius:12px;padding:12px;margin-bottom:14px}.small{font-size:12px;color:var(--muted)}
   </style>
+  <script src="./portal-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <header>
@@ -38,13 +40,13 @@
   const isDemetrius = e => DEMETRIUS.some(x => norm(e) === norm(x) || norm(e).includes(norm(x)));
   function setMsg(t,cls){ msg.className=cls||'warn'; msg.textContent=t; }
   async function emailAtual(){
-    try{ const r = await window.supabase.auth.getUser(); return r?.data?.user?.email || ''; }catch(e){ return ''; }
+    try{ const r = await supabaseClient.auth.getUser(); return r?.data?.user?.email || ''; }catch(e){ return ''; }
   }
   async function carregar(){
     if(!window.supabase){ setMsg('Supabase não encontrado nesta página. Inclua aqui o mesmo script/configuração Supabase usado no index.html.','err'); return; }
     const email = await emailAtual();
     if(!email){ setMsg('Usuário não identificado. Faça login novamente.','err'); return; }
-    let {data,error} = await window.supabase.rpc('portal_get_update_permissions',{p_email:email});
+    let {data,error} = await supabaseClient.rpc('portal_get_update_permissions',{p_email:email});
     if(error){ setMsg('Erro ao carregar permissões: '+error.message,'err'); return; }
     data = data || [];
     if(!data.length && !isDemetrius(email)){ setMsg('Seu login não possui relatórios liberados para atualização.','err'); return; }
@@ -74,7 +76,7 @@
       return;
     }
     status.textContent='Enviando...';
-    const {error} = await window.supabase.storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'60'});
+    const {error} = await supabaseClient.storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'60'});
     status.textContent = error ? ('Erro: '+error.message) : 'Arquivo enviado com sucesso.';
   }
   carregar();
