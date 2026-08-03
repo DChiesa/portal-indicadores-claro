@@ -2,8 +2,6 @@ window.PORTAL_CONFIG=Object.freeze({
   SUPABASE_URL:'https://frxfoztyctrvsobbawmo.supabase.co',
   SUPABASE_PUBLISHABLE_KEY:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
   BUCKET:'bases-tecnico',
-  REPORTS_BUCKET:'portal-html',
-  GITHUB_SYNC_FUNCTION:'github-report-sync',
   AUTO_REFRESH_MS:300000,
   FILES:Object.freeze({
     'dashboard_at1_historico.html':'atual/at1.xlsx',
@@ -20,7 +18,8 @@ window.PORTAL_CONFIG=Object.freeze({
     'relatorio_manifestos_rrs.html':'atual/MANIF RRS.xlsx',
     'dashboard_rai_cluster.html':'atual/rai_cluster.xlsx',
     'backbone_analytics.html':'atual/eventos backbone.xlsx',
-    'estudo_codigos_cluster.html':'atual/estudo codigo.xlsx'
+    'estudo_codigos_cluster.html':'atual/estudo codigo.xlsx',
+    'quebra_migracao.html':'atual/quebra_migracao.xlsx'
   })
 });
 window.APP_CONFIG=window.PORTAL_CONFIG;
