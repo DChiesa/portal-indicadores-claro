@@ -22,9 +22,11 @@ async function carregar(){
   if(!sess){location.href='index.html';return}
   const email=normalizar(sess.user.email);
   const admin=email.includes('demetrius377');
-  const r=await client().rpc('portal_get_my_update_permissions_v2');
-  if(r.error){setMsg('Erro ao carregar permissões: '+r.error.message,'err');return}
+  const [r,r3]=await Promise.all([client().rpc('portal_get_my_update_permissions_v2'),client().rpc('portal_get_my_update_permissions_v3')]);
+  if(r.error||r3.error){setMsg('Erro ao carregar permissões: '+(r.error||r3.error).message,'err');return}
   let rows=(r.data||[]).map(x=>({...x}));
+  const seenV3=new Set(rows.map(chaveLinha));
+  for(const x of (r3.data||[])){const k=chaveLinha(x);if(k&&!seenV3.has(k)){rows.push({...x});seenV3.add(k)}}
   if(admin){
    const pag=await client().rpc('portal_admin_list_reports');
    if(!pag.error){
