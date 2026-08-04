@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ranking AT1 Personas 2026</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+:root{--claro:#d00000;--claro2:#b80000;--ink:#242424;--muted:#6b7280;--line:#e5e7eb;--bg:#f3f4f6;--card:#fff;--black:#090909}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+button,select,input{font:inherit}.top{background:var(--claro);color:#fff;min-height:92px;display:grid;grid-template-columns:240px 1fr 330px;align-items:center;padding:10px 22px;box-shadow:0 2px 8px #0003}
+.brand{font-size:46px;font-weight:700;letter-spacing:-3px}.brand small{font-size:22px;vertical-align:top}.title{text-align:center;font-size:34px;font-weight:800}.asof{text-align:right;font-size:16px;font-weight:700;line-height:1.35}.owner{font-size:12px;font-weight:600;margin-top:5px;opacity:.95}
+.shell{max-width:1720px;margin:auto;padding:18px}.toolbar{background:#fff;border-radius:14px;padding:14px;box-shadow:0 3px 14px #00000010;margin-bottom:14px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tab{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 18px;border-radius:999px;font-weight:700;cursor:pointer}.tab.active{background:var(--claro);border-color:var(--claro);color:#fff}
+.filters{display:grid;grid-template-columns:repeat(5,minmax(145px,1fr)) auto;gap:10px;align-items:end}.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:800;margin:0 0 5px}.field select{width:100%;height:42px;border:1px solid #d1d5db;border-radius:9px;background:white;padding:0 11px}.export{height:42px;border:0;border-radius:9px;padding:0 16px;color:white;background:#202020;font-weight:750;cursor:pointer}.export:hover{background:var(--claro)}
+.notice{display:none;margin:12px 0;padding:10px 12px;border-radius:8px;background:#fff0f0;color:#8b0000;border:1px solid #ffc9c9;font-size:13px}.loading{display:flex;gap:10px;align-items:center;padding:18px;background:#fff;border-radius:12px}.dot{width:15px;height:15px;border:3px solid #eee;border-top-color:var(--claro);border-radius:50%;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.capture{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px #00000012}.capture-head{display:none}.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px}.card{border:1px solid var(--line);border-radius:12px;background:var(--card);min-width:0;overflow:hidden}.card h2{margin:0;text-align:center;color:#555;font-size:20px;padding:13px 10px 2px}.canvas-wrap{height:470px;padding:8px 12px 12px}.foot{padding:0 16px 14px;color:var(--muted);font-size:12px;text-align:center}.source{font-size:11px;color:#777;margin-top:10px;text-align:right}
+@media(max-width:1000px){.top{grid-template-columns:1fr;text-align:center;gap:4px}.brand,.asof{text-align:center}.filters{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}.canvas-wrap{height:430px}}@media(max-width:560px){.filters{grid-template-columns:1fr}.title{font-size:25px}.brand{font-size:38px}.shell{padding:10px}.canvas-wrap{height:400px}}
+@media print{body{background:#fff}.toolbar,.source{display:none}.shell{max-width:none;padding:0}.capture{box-shadow:none}.charts{grid-template-columns:1fr 1fr}.top{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header class="top" id="pageBanner">
+  <div class="brand">Claro<small>•</small></div>
+  <div class="title">RANKING AT1 PERSONAS</div>
+  <div class="asof"><div>ATUAL ATÉ <span id="asOf">--/--</span></div><div id="bannerProduct">TODOS</div><div class="owner">Certificado de propriedade: Demétrius Chiesa</div></div>
+</header>
+<main class="shell">
+  <section class="toolbar">
+    <nav class="tabs" aria-label="Selecionar indicador">
+      <button class="tab active" data-mode="at1">AT1 Personas</button>
+      <button class="tab" data-mode="base">Base Personas Principal</button>
+    </nav>
+    <div class="filters">
+      <div class="field"><label for="product">Produto</label><select id="product"></select></div>
+      <div class="field"><label for="city">Cidade adicional</label><select id="city"></select></div>
+      <div class="field"><label for="cluster">Cluster adicional</label><select id="cluster"></select></div>
+      <div class="field"><label for="month">Mês</label><select id="month"></select></div>
+      <div class="field"><label for="year">Ano</label><select id="year"></select></div>
+      <button class="export" id="exportBtn">Exportar dupla de gráficos</button>
+    </div>
+    <div id="notice" class="notice"></div>
+  </section>
+  <div id="loading" class="loading"><span class="dot"></span>Carregando base 2026...</div>
+  <section id="capture" class="capture" hidden>
+    <div class="charts">
+      <article class="card"><h2 id="cityTitle">RANKING AT1 CIDADE</h2><div class="canvas-wrap"><canvas id="cityChart"></canvas></div></article>
+      <article class="card"><h2 id="clusterTitle">RANKING AT1 CLUSTER</h2><div class="canvas-wrap"><canvas id="clusterChart"></canvas></div></article>
+    </div>
+    <div class="foot">Ordenação decrescente: maior resultado à esquerda e menor à direita.</div>
+  </section>
+  <div class="source">Fonte: <strong>AT1_BASE_PERSONAS.xlsx</strong> • Atualização automática via Supabase Storage</div>
+</main>
+<input id="fallbackFile" type="file" accept=".xlsx,.xls" hidden>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+/* PONTO_APROVADO: visual, filtros e gráficos da versão anterior preservados. */
+/* ALTERAÇÃO: leitura da nova base AT1_BASE_PERSONAS.xlsx com abas anuais. */
+const CONFIG={
+  supabaseUrl:'https://frxfoztyctrvsobbawmo.supabase.co',
+  publishableKey:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
+  bucket:'bases-tecnico', folder:'atual', file:'AT1_BASE_PERSONAS.xlsx',
+  defaultCities:['Rosário do Sul',"Sant'Ana do Livramento",'São Gabriel','Rio Grande','Bagé','Pelotas','Alegrete','Uruguaiana'],
+  defaultClusters:['Porto Alegre','Caxias do Sul','Passo Fundo','Novo Hamburgo','Capão da Canoa','Santa Maria','Uruguaiana','Pelotas','Santa Cruz do Sul']
+};
+const S={rows:[],months:[],years:[],workbook:null,mode:'at1',cityChart:null,clusterChart:null};
+const $=id=>document.getElementById(id); const pt=n=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:S.mode==='at1'?2:0,maximumFractionDigits:S.mode==='at1'?2:0});
+function clean(v){return String(v??'').trim()} function norm(v){return clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+function monthKey(v){if(v instanceof Date&&!isNaN(v))return `${String(v.getMonth()+1).padStart(2,'0')}/${String(v.getFullYear()).slice(-2)}`; const s=clean(v); const m=s.match(/(\d{1,2})\D+(\d{2,4})/); return m?`${m[1].padStart(2,'0')}/${m[2].slice(-2)}`:s}
+function showError(msg){$('notice').style.display='block';$('notice').innerHTML=msg}
+async function loadRemote(){
+ const path=[CONFIG.folder,CONFIG.file].filter(Boolean).map(encodeURIComponent).join('/');
+ const url=`${CONFIG.supabaseUrl}/storage/v1/object/public/${CONFIG.bucket}/${path}`;
+ const r=await fetch(url,{headers:{apikey:CONFIG.publishableKey}}); if(!r.ok)throw new Error(`Supabase respondeu ${r.status}`); return r.arrayBuffer();
+}
+function parseWorkbook(buf,requestedYear){
+ /* ALTERAÇÃO: suporte às abas anuais 2026 e 2025 da nova base. */
+ if(buf)S.workbook=XLSX.read(buf,{type:'array',cellDates:true});
+ const wb=S.workbook;if(!wb)throw new Error('A pasta de trabalho não foi carregada.');
+ S.years=wb.SheetNames.filter(n=>/^20\d{2}$/.test(clean(n))).sort((a,b)=>Number(b)-Number(a));
+ const sheetName=(requestedYear&&wb.Sheets[requestedYear])?requestedYear:(S.years[0]||wb.SheetNames[0]);
+ const ws=wb.Sheets[sheetName]; const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+ if(a.length<3)throw new Error(`A aba ${sheetName} não possui linhas suficientes.`);
+ const headers=a[1]; const at1Cols=[],baseCols=[];
+ for(let c=3;c<=14;c++)if(headers[c]!=null)at1Cols.push({c,key:monthKey(headers[c])});
+ for(let c=15;c<=26;c++)if(headers[c]!=null)baseCols.push({c,key:monthKey(headers[c])});
+ const keys=[...new Set(at1Cols.map(x=>x.key).filter(Boolean))]; let city='';
+ S.rows=a.slice(2).map(r=>{if(clean(r[0]))city=clean(r[0]); const at1={},base={};at1Cols.forEach(x=>at1[x.key]=Number(r[x.c]));baseCols.forEach(x=>base[x.key]=Number(r[x.c]));return{city,product:clean(r[1])||'Total',cluster:clean(r[2]),at1,base}}).filter(r=>r.city&&r.product);
+ S.months=keys.filter(k=>S.rows.some(r=>Number.isFinite(r.at1[k])||Number.isFinite(r.base[k]))).sort((a,b)=>{const [am,ay]=a.split('/').map(Number),[bm,by]=b.split('/').map(Number);return (ay*12+am)-(by*12+bm)});
+ if(!S.rows.length||!S.months.length)throw new Error(`Colunas CIDADE, PRODUTO, CLUSTER ou meses não foram reconhecidas na aba ${sheetName}.`);
+ return sheetName;
+}
+function option(sel,value,label=value){const o=document.createElement('option');o.value=value;o.textContent=label;sel.append(o)}
+function fillFilters(preserve=false){
+ const old={product:$('product').value,city:$('city').value,cluster:$('cluster').value,month:$('month').value,year:$('year').value};
+ const products=[...new Set(S.rows.map(r=>r.product))].sort((a,b)=>a.localeCompare(b,'pt-BR')); $('product').innerHTML=''; products.forEach(x=>option($('product'),x,x)); $('product').value=preserve&&products.includes(old.product)?old.product:(products.includes('GPON')?'GPON':products[0]);
+ const cities=[...new Set(S.rows.map(r=>r.city))].sort((a,b)=>a.localeCompare(b,'pt-BR'));$('city').innerHTML='';option($('city'),'','Somente cidades padrão');cities.filter(x=>!CONFIG.defaultCities.some(d=>norm(d)===norm(x))).forEach(x=>option($('city'),x));if(preserve&&cities.includes(old.city))$('city').value=old.city;
+ const clusters=[...new Set(S.rows.map(r=>r.cluster).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));$('cluster').innerHTML='';option($('cluster'),'','Somente clusters padrão');clusters.filter(x=>!CONFIG.defaultClusters.some(d=>norm(d)===norm(x))).forEach(x=>option($('cluster'),x));if(preserve&&clusters.includes(old.cluster))$('cluster').value=old.cluster;
+ $('month').innerHTML='';S.months.forEach(x=>option($('month'),x,x));$('month').value=preserve&&S.months.includes(old.month)?old.month:S.months.at(-1);
+ $('year').innerHTML='';S.years.forEach(y=>option($('year'),y,y));$('year').value=old.year&&S.years.includes(old.year)?old.year:(S.years[0]||'2026');
+}
+function targetList(defaults,extra){const list=[...defaults];if(extra&&!list.some(x=>norm(x)===norm(extra)))list.push(extra);return list}
+function weighted(rows,key,mode){
+ if(mode==='base')return rows.reduce((s,r)=>s+(Number.isFinite(r.base[key])?r.base[key]:0),0);
+ const good=rows.filter(r=>Number.isFinite(r.at1[key])); if(!good.length)return null;
+ const weighted=good.filter(r=>Number.isFinite(r.base[key])&&r.base[key]>0); if(weighted.length){const den=weighted.reduce((s,r)=>s+r.base[key],0);return den?weighted.reduce((s,r)=>s+r.at1[key]*r.base[key],0)/den:null}
+ return good.reduce((s,r)=>s+r.at1[key],0)/good.length;
+}
+function dataForCities(){const key=$('month').value,product=$('product').value;return targetList(CONFIG.defaultCities,$('city').value).map(name=>{let rows=S.rows.filter(r=>norm(r.city)===norm(name));rows=product==='Total'?rows.filter(r=>norm(r.product)==='total'):rows.filter(r=>norm(r.product)===norm(product));return{label:name,value:weighted(rows,key,S.mode)}}).filter(x=>Number.isFinite(x.value)).sort((a,b)=>b.value-a.value)}
+function dataForClusters(){const key=$('month').value,product=$('product').value;return targetList(CONFIG.defaultClusters,$('cluster').value).map(name=>{let rows=S.rows.filter(r=>norm(r.cluster)===norm(name));if(product!=='Total')rows=rows.filter(r=>norm(r.product)===norm(product));else rows=S.rows.filter(r=>norm(r.product)==='total'&&S.rows.some(z=>norm(z.city)===norm(r.city)&&norm(z.cluster)===norm(name)));return{label:`CLUSTER ${name}`,value:weighted(rows,key,S.mode)}}).filter(x=>Number.isFinite(x.value)).sort((a,b)=>b.value-a.value)}
+function chart(canvas,items,title){
+ const max=Math.max(...items.map(x=>x.value),1);return new Chart(canvas,{type:'bar',plugins:[ChartDataLabels],data:{labels:items.map(x=>x.label),datasets:[{data:items.map(x=>x.value),backgroundColor:items.map((_,i)=>i===0?'#090909':'#d00000'),borderRadius:0,barPercentage:.5,categoryPercentage:.72}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:26,right:8,left:8,bottom:2}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${title}: ${pt(c.raw)}${S.mode==='at1'?'%':''}`}},datalabels:{anchor:'end',align:'end',offset:2,color:'#333',font:{size:12,weight:'600'},formatter:v=>pt(v)+(S.mode==='at1'?'%':'')}},scales:{x:{grid:{display:false},ticks:{color:'#555',font:{size:11},maxRotation:0,minRotation:0,autoSkip:false,callback:function(v){const s=this.getLabelForValue(v);return s.length>21?[s.slice(0,21),s.slice(21,42)]:s}}},y:{display:false,beginAtZero:true,suggestedMax:max*1.22,grid:{display:false}}}}})
+}
+function render(){
+ const city=dataForCities(),cluster=dataForClusters(); if(S.cityChart)S.cityChart.destroy();if(S.clusterChart)S.clusterChart.destroy();
+ const label=S.mode==='at1'?'AT1':'BASE PERSONAS';$('cityTitle').textContent=`RANKING ${label} CIDADE`;$('clusterTitle').textContent=`RANKING ${label} CLUSTER`;
+ S.cityChart=chart($('cityChart'),city,label);S.clusterChart=chart($('clusterChart'),cluster,label);$('bannerProduct').textContent=$('product').value.toUpperCase();
+ const [m,y]=$('month').value.split('/').map(Number);$('asOf').textContent=`${new Date(2000+y,m,0).getDate()}/${m}`;$('capture').hidden=false;
+}
+async function exportPair(){
+ const wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-100000px;top:0;width:1600px;background:white';
+ const banner=$('pageBanner').cloneNode(true),cap=$('capture').cloneNode(true);wrap.append(banner,cap);document.body.append(wrap);
+ const canvas=await html2canvas(wrap,{scale:1.4,backgroundColor:'#ffffff',useCORS:true});wrap.remove();const a=document.createElement('a');a.download=`ranking_${S.mode}_${$('product').value}_${$('month').value.replace('/','-')}.png`;a.href=canvas.toDataURL('image/png');a.click();
+}
+async function boot(){try{const year=parseWorkbook(await loadRemote());finish(year)}catch(e){$('loading').innerHTML='Não foi possível abrir o Excel no Supabase. <button class="tab" id="chooseFile">Selecionar o Excel local</button>';showError(`Verifique se o bucket <b>${CONFIG.bucket}</b> é público e se o arquivo está em <b>${CONFIG.folder}/${CONFIG.file}</b>. Detalhe: ${e.message}`);$('chooseFile').onclick=()=>$('fallbackFile').click()}}
+function finish(year){fillFilters();if(year&&S.years.includes(year))$('year').value=year;$('loading')?.remove();render()}
+$('fallbackFile').onchange=async e=>{try{const year=parseWorkbook(await e.target.files[0].arrayBuffer());$('notice').style.display='none';finish(year)}catch(err){showError(err.message)}};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');S.mode=b.dataset.mode;render()});
+['product','city','cluster','month'].forEach(id=>$(id).addEventListener('change',render));$('year').addEventListener('change',()=>{const selected=$('year').value;parseWorkbook(null,selected);fillFilters(true);$('year').value=selected;render()});$('exportBtn').onclick=exportPair;boot();
+</script>
+</body>
+</html>
