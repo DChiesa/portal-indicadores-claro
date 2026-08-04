@@ -51,6 +51,7 @@ button,select,input{font:inherit}.top{background:var(--claro);color:#fff;min-hei
   <div class="source">Fonte: <strong>AT1_BASE_PERSONAS.xlsx</strong> • Atualização automática via Supabase Storage</div>
 </main>
 <input id="fallbackFile" type="file" accept=".xlsx,.xls" hidden>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
@@ -71,9 +72,20 @@ function clean(v){return String(v??'').trim()} function norm(v){return clean(v).
 function monthKey(v){if(v instanceof Date&&!isNaN(v))return `${String(v.getMonth()+1).padStart(2,'0')}/${String(v.getFullYear()).slice(-2)}`; const s=clean(v); const m=s.match(/(\d{1,2})\D+(\d{2,4})/); return m?`${m[1].padStart(2,'0')}/${m[2].slice(-2)}`:s}
 function showError(msg){$('notice').style.display='block';$('notice').innerHTML=msg}
 async function loadRemote(){
- const path=[CONFIG.folder,CONFIG.file].filter(Boolean).map(encodeURIComponent).join('/');
- const url=`${CONFIG.supabaseUrl}/storage/v1/object/public/${CONFIG.bucket}/${path}`;
- const r=await fetch(url,{headers:{apikey:CONFIG.publishableKey}}); if(!r.ok)throw new Error(`Supabase respondeu ${r.status}`); return r.arrayBuffer();
+ /* ALTERAÇÃO: usa o cliente oficial Supabase, compatível com chave sb_publishable_. */
+ const client=window.supabase.createClient(CONFIG.supabaseUrl,CONFIG.publishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+ let path=[CONFIG.folder,CONFIG.file].filter(Boolean).join('/');
+ let {data,error}=await client.storage.from(CONFIG.bucket).download(path);
+ if(error){
+   /* Contingência: localiza o nome real do arquivo na pasta, evitando erro por caixa/espaço. */
+   const listed=await client.storage.from(CONFIG.bucket).list(CONFIG.folder||'',{limit:100,sortBy:{column:'name',order:'asc'}});
+   if(!listed.error&&listed.data){
+     const wanted=norm(CONFIG.file); const found=listed.data.find(x=>norm(x.name)===wanted)||listed.data.find(x=>norm(x.name).includes('at1_base_personas')&&/\.xlsx$/i.test(x.name));
+     if(found){path=[CONFIG.folder,found.name].filter(Boolean).join('/');({data,error}=await client.storage.from(CONFIG.bucket).download(path));}
+   }
+ }
+ if(error||!data)throw new Error(error?.message||'Arquivo não retornado pelo Supabase');
+ return data.arrayBuffer();
 }
 function parseWorkbook(buf,requestedYear){
  /* ALTERAÇÃO: suporte às abas anuais 2026 e 2025 da nova base. */
@@ -124,7 +136,7 @@ async function exportPair(){
  const banner=$('pageBanner').cloneNode(true),cap=$('capture').cloneNode(true);wrap.append(banner,cap);document.body.append(wrap);
  const canvas=await html2canvas(wrap,{scale:1.4,backgroundColor:'#ffffff',useCORS:true});wrap.remove();const a=document.createElement('a');a.download=`ranking_${S.mode}_${$('product').value}_${$('month').value.replace('/','-')}.png`;a.href=canvas.toDataURL('image/png');a.click();
 }
-async function boot(){try{const year=parseWorkbook(await loadRemote());finish(year)}catch(e){$('loading').innerHTML='Não foi possível abrir o Excel no Supabase. <button class="tab" id="chooseFile">Selecionar o Excel local</button>';showError(`Verifique se o bucket <b>${CONFIG.bucket}</b> é público e se o arquivo está em <b>${CONFIG.folder}/${CONFIG.file}</b>. Detalhe: ${e.message}`);$('chooseFile').onclick=()=>$('fallbackFile').click()}}
+async function boot(){try{const year=parseWorkbook(await loadRemote());finish(year)}catch(e){$('loading').innerHTML='Não foi possível abrir o Excel no Supabase. <button class="tab" id="chooseFile">Selecionar o Excel local</button>';showError(`Não foi possível ler <b>${CONFIG.folder}/${CONFIG.file}</b> no bucket <b>${CONFIG.bucket}</b>. Verifique a política SELECT do Storage ou o nome do arquivo. Detalhe: ${e.message}`);$('chooseFile').onclick=()=>$('fallbackFile').click()}}
 function finish(year){fillFilters();if(year&&S.years.includes(year))$('year').value=year;$('loading')?.remove();render()}
 $('fallbackFile').onchange=async e=>{try{const year=parseWorkbook(await e.target.files[0].arrayBuffer());$('notice').style.display='none';finish(year)}catch(err){showError(err.message)}};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');S.mode=b.dataset.mode;render()});
