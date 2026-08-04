@@ -48,7 +48,7 @@ button,select,input{font:inherit}.top{background:var(--claro);color:#fff;min-hei
     </div>
     <div class="foot">Ordenação decrescente: maior resultado à esquerda e menor à direita.</div>
   </section>
-  <div class="source">Fonte: <strong>AT1_BASE_PERSONAS.xlsx</strong> • Atualização automática via Supabase Storage</div>
+  <div class="source">Fonte: <strong>AT1_PERSONAS.xlsx</strong> • Atualização automática via Supabase Storage</div>
 </main>
 <input id="fallbackFile" type="file" accept=".xlsx,.xls" hidden>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -58,11 +58,11 @@ button,select,input{font:inherit}.top{background:var(--claro);color:#fff;min-hei
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 /* PONTO_APROVADO: visual, filtros e gráficos da versão anterior preservados. */
-/* ALTERAÇÃO: leitura da nova base AT1_BASE_PERSONAS.xlsx com abas anuais. */
+/* ALTERAÇÃO: leitura da base AT1_PERSONAS.xlsx com abas anuais. */
 const CONFIG={
   supabaseUrl:'https://frxfoztyctrvsobbawmo.supabase.co',
   publishableKey:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
-  bucket:'bases-tecnico', folder:'atual', file:'AT1_BASE_PERSONAS.xlsx',
+  bucket:'bases-tecnico', folder:'atual', file:'AT1_PERSONAS.xlsx',
   defaultCities:['Rosário do Sul',"Sant'Ana do Livramento",'São Gabriel','Rio Grande','Bagé','Pelotas','Alegrete','Uruguaiana'],
   defaultClusters:['Porto Alegre','Caxias do Sul','Passo Fundo','Novo Hamburgo','Capão da Canoa','Santa Maria','Uruguaiana','Pelotas','Santa Cruz do Sul']
 };
@@ -72,20 +72,36 @@ function clean(v){return String(v??'').trim()} function norm(v){return clean(v).
 function monthKey(v){if(v instanceof Date&&!isNaN(v))return `${String(v.getMonth()+1).padStart(2,'0')}/${String(v.getFullYear()).slice(-2)}`; const s=clean(v); const m=s.match(/(\d{1,2})\D+(\d{2,4})/); return m?`${m[1].padStart(2,'0')}/${m[2].slice(-2)}`:s}
 function showError(msg){$('notice').style.display='block';$('notice').innerHTML=msg}
 async function loadRemote(){
- /* ALTERAÇÃO: usa o cliente oficial Supabase, compatível com chave sb_publishable_. */
+ /* ALTERAÇÃO: tenta o nome real exibido no Storage e variações antigas, sem alterar o dashboard. */
  const client=window.supabase.createClient(CONFIG.supabaseUrl,CONFIG.publishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
- let path=[CONFIG.folder,CONFIG.file].filter(Boolean).join('/');
- let {data,error}=await client.storage.from(CONFIG.bucket).download(path);
- if(error){
-   /* Contingência: localiza o nome real do arquivo na pasta, evitando erro por caixa/espaço. */
-   const listed=await client.storage.from(CONFIG.bucket).list(CONFIG.folder||'',{limit:100,sortBy:{column:'name',order:'asc'}});
-   if(!listed.error&&listed.data){
-     const wanted=norm(CONFIG.file); const found=listed.data.find(x=>norm(x.name)===wanted)||listed.data.find(x=>norm(x.name).includes('at1_base_personas')&&/\.xlsx$/i.test(x.name));
-     if(found){path=[CONFIG.folder,found.name].filter(Boolean).join('/');({data,error}=await client.storage.from(CONFIG.bucket).download(path));}
+ const storage=client.storage.from(CONFIG.bucket);
+ const names=[
+   CONFIG.file,
+   'AT1_PERSONAS.xlsx'
+ ];
+ const folders=[CONFIG.folder,''].filter((v,i,a)=>a.indexOf(v)===i);
+ const candidates=[];
+ for(const folder of folders)for(const name of names){const path=[folder,name].filter(Boolean).join('/');if(!candidates.includes(path))candidates.push(path)}
+ const attempts=[];
+ for(const path of candidates){
+   const {data,error}=await storage.download(path);
+   attempts.push(path);
+   if(data&&!error){CONFIG.resolvedPath=path;return data.arrayBuffer()}
+ }
+ /* Descoberta automática na pasta atual e na raiz. */
+ for(const folder of folders){
+   const {data:list,error:listError}=await storage.list(folder||'',{limit:1000,sortBy:{column:'name',order:'asc'}});
+   if(!listError&&list){
+     const found=list.find(x=>x.id&&/\.xlsx$/i.test(x.name)&&norm(x.name).includes('at1_personas')||norm(x.name).includes('at1 personas'));
+     if(found){const path=[folder,found.name].filter(Boolean).join('/');const {data,error}=await storage.download(path);attempts.push(path);if(data&&!error){CONFIG.resolvedPath=path;return data.arrayBuffer()}}
    }
  }
- if(error||!data)throw new Error(error?.message||'Arquivo não retornado pelo Supabase');
- return data.arrayBuffer();
+ /* Última contingência para bucket público, usando URL pública oficial. */
+ for(const path of candidates){
+   const {data:publicData}=storage.getPublicUrl(path);
+   if(publicData?.publicUrl){const r=await fetch(publicData.publicUrl,{cache:'no-store'});if(r.ok){CONFIG.resolvedPath=path;return r.arrayBuffer()}}
+ }
+ throw new Error(`Objeto não localizado. Caminhos testados: ${attempts.join(' | ')}`);
 }
 function parseWorkbook(buf,requestedYear){
  /* ALTERAÇÃO: suporte às abas anuais 2026 e 2025 da nova base. */
@@ -136,7 +152,7 @@ async function exportPair(){
  const banner=$('pageBanner').cloneNode(true),cap=$('capture').cloneNode(true);wrap.append(banner,cap);document.body.append(wrap);
  const canvas=await html2canvas(wrap,{scale:1.4,backgroundColor:'#ffffff',useCORS:true});wrap.remove();const a=document.createElement('a');a.download=`ranking_${S.mode}_${$('product').value}_${$('month').value.replace('/','-')}.png`;a.href=canvas.toDataURL('image/png');a.click();
 }
-async function boot(){try{const year=parseWorkbook(await loadRemote());finish(year)}catch(e){$('loading').innerHTML='Não foi possível abrir o Excel no Supabase. <button class="tab" id="chooseFile">Selecionar o Excel local</button>';showError(`Não foi possível ler <b>${CONFIG.folder}/${CONFIG.file}</b> no bucket <b>${CONFIG.bucket}</b>. Verifique a política SELECT do Storage ou o nome do arquivo. Detalhe: ${e.message}`);$('chooseFile').onclick=()=>$('fallbackFile').click()}}
+async function boot(){try{const year=parseWorkbook(await loadRemote());finish(year)}catch(e){$('loading').innerHTML='Não foi possível abrir o Excel no Supabase. <button class="tab" id="chooseFile">Selecionar o Excel local</button>';showError(`Não foi possível localizar a base no bucket <b>${CONFIG.bucket}</b>. O portal procurou <b>AT1_PERSONAS.xlsx</b> na pasta <b>atual</b> e na raiz do bucket. Detalhe: ${e.message}`);$('chooseFile').onclick=()=>$('fallbackFile').click()}}
 function finish(year){fillFilters();if(year&&S.years.includes(year))$('year').value=year;$('loading')?.remove();render()}
 $('fallbackFile').onchange=async e=>{try{const year=parseWorkbook(await e.target.files[0].arrayBuffer());$('notice').style.display='none';finish(year)}catch(err){showError(err.message)}};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');S.mode=b.dataset.mode;render()});
