@@ -29,7 +29,7 @@ function city(r){return norm(getField(r,['MUNICIPIO','MUNICÍPIO','CIDADE','CIDA
 function node(r){return String(getField(r,['CD_NODE','NODE'])).trim()}
 function baixa(r){return String(getField(r,['CD_BAIXA','CODIGO_BAIXA','CÓDIGO DE BAIXA','COD BAIXA'])).trim()}
 /* ALTERACAO: produto separado prioritariamente e exclusivamente por DSC_SEG_PRODUTO quando a coluna existe. */
-function tipo(r){const keys=Object.keys(r||{}),segProdutoKey=keys.find(k=>norm(k)==='DSC_SEG_PRODUTO'),raw=segProdutoKey?String(r[segProdutoKey]??''):getField(r,['DSC_SEGMENTACAO']);const v=norm(raw);if(v.includes('GPON'))return'GPON';if(v.includes('HFC'))return'HFC';if(v.includes('HIBR'))return'HIBRIDO';if(v.includes('TOTAL'))return'TOTAL';return v}
+function tipo(r){const keys=Object.keys(r||{}),segProdutoKey=keys.find(k=>norm(k)==='DSC_SEG_PRODUTO');const raw=segProdutoKey?String(r[segProdutoKey]??''):getField(r,['DSC_SEGMENTACAO']),v=norm(raw);if(v==='GPON')return'GPON';if(v==='HFC')return'HFC';if(v==='HIBRIDO'||v==='HIBRIDO')return'HIBRIDO';return v}
 function statusOS(r){return norm(getField(r,['NM_STATUS_OS']))}
 function expurgo(r){return norm(getField(r,['EXPURGO_AT1']))}
 /* ALTERACAO: mesma unidade de contagem da tabela dinamica: Contagem de NR_CONTRATO. */
