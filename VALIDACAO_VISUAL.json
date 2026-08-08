@@ -1,0 +1,210 @@
+[
+  {
+    "arquivo": "Central_de_Logins.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 23,
+    "scripts": 2
+  },
+  {
+    "arquivo": "admin_permissoes.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 7,
+    "scripts": 3
+  },
+  {
+    "arquivo": "admin_relatorios.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 5,
+    "scripts": 3
+  },
+  {
+    "arquivo": "analise_qualinet.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 38,
+    "scripts": 7
+  },
+  {
+    "arquivo": "at1_personas.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 20,
+    "scripts": 7
+  },
+  {
+    "arquivo": "at5_total.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 22,
+    "scripts": 5
+  },
+  {
+    "arquivo": "atualizador_relatorios.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 3,
+    "scripts": 3
+  },
+  {
+    "arquivo": "backbone_analytics.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 21,
+    "scripts": 1
+  },
+  {
+    "arquivo": "central-atualizacao.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 2,
+    "scripts": 3
+  },
+  {
+    "arquivo": "dashboard_at1_historico.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 55,
+    "scripts": 3
+  },
+  {
+    "arquivo": "dashboard_at5_total.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 22,
+    "scripts": 5
+  },
+  {
+    "arquivo": "dashboard_log_manutencao.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 28,
+    "scripts": 7
+  },
+  {
+    "arquivo": "dashboard_rai_cluster.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 28,
+    "scripts": 8
+  },
+  {
+    "arquivo": "dashboard_tnps_claro.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 30,
+    "scripts": 6
+  },
+  {
+    "arquivo": "estudo_codigos_cluster.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 22,
+    "scripts": 4
+  },
+  {
+    "arquivo": "painel_certidao_atendimento.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 22,
+    "scripts": 8
+  },
+  {
+    "arquivo": "painel_nr35_visao_tecnico.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 18,
+    "scripts": 8
+  },
+  {
+    "arquivo": "painel_quebra_total.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 23,
+    "scripts": 8
+  },
+  {
+    "arquivo": "painel_recomendacoes.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 18,
+    "scripts": 7
+  },
+  {
+    "arquivo": "projeto_gpon_cluster.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 18,
+    "scripts": 4
+  },
+  {
+    "arquivo": "quebra_de_agenda.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 31,
+    "scripts": 6
+  },
+  {
+    "arquivo": "quebra_migracao.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 15,
+    "scripts": 5
+  },
+  {
+    "arquivo": "rai_cluster.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 29,
+    "scripts": 8
+  },
+  {
+    "arquivo": "relatorio_flag_24h_graf_diario.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 31,
+    "scripts": 6
+  },
+  {
+    "arquivo": "relatorio_manifestos_rrs.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 57,
+    "scripts": 6
+  },
+  {
+    "arquivo": "tecnico_certificado.html",
+    "ids_preservados": true,
+    "scripts_externos_preservados": true,
+    "scripts_inline_preservados": true,
+    "ids": 46,
+    "scripts": 5
+  }
+]
