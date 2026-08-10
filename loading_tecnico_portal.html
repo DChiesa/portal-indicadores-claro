@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading Técnico</title>
+<style>
+  :root {
+    --claro-red: #e30613;
+    --claro-red-dark: #b9000b;
+    --navy: #15253b;
+    --muted: #667085;
+    --panel: rgba(255,255,255,.96);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #f4f6f9 0%, #ffffff 50%, #f4f6f9 100%);
+    color: var(--navy);
+  }
+
+  /* Overlay pronto para ser usado no portal */
+  #portalLoading {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(227,6,19,.10), transparent 34%),
+      rgba(246,248,251,.96);
+    backdrop-filter: blur(7px);
+    transition: opacity .35s ease, visibility .35s ease;
+  }
+
+  #portalLoading.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .loading-card {
+    width: min(520px, 94vw);
+    padding: 34px 28px 28px;
+    border: 1px solid rgba(21,37,59,.08);
+    border-radius: 24px;
+    background: var(--panel);
+    box-shadow: 0 24px 70px rgba(21,37,59,.16);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .brand-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 18px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: #fff0f1;
+    color: var(--claro-red);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--claro-red);
+    box-shadow: 0 0 0 5px rgba(227,6,19,.12);
+  }
+
+  .scene {
+    position: relative;
+    height: 205px;
+    margin: 0 auto 8px;
+    overflow: hidden;
+  }
+
+  .track {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    bottom: 34px;
+    height: 3px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, transparent, #c7cdd6 15%, #c7cdd6 85%, transparent);
+  }
+
+  .track::after {
+    content: "";
+    position: absolute;
+    inset: -1px auto -1px 0;
+    width: 38%;
+    border-radius: inherit;
+    background: var(--claro-red);
+    animation: progress 2.2s ease-in-out infinite;
+  }
+
+  .technician {
+    position: absolute;
+    left: 50%;
+    bottom: 34px;
+    width: 174px;
+    height: 150px;
+    transform: translateX(-50%);
+    animation: bodyBounce .48s ease-in-out infinite alternate;
+    filter: drop-shadow(0 12px 9px rgba(21,37,59,.16));
+  }
+
+  .ladder-group {
+    transform-origin: 84px 52px;
+    animation: ladderSway .96s ease-in-out infinite alternate;
+  }
+
+  .arm-front { transform-origin: 91px 71px; animation: armWalk .96s ease-in-out infinite alternate; }
+  .arm-back  { transform-origin: 70px 70px; animation: armWalk .96s ease-in-out infinite alternate-reverse; }
+  .leg-front { transform-origin: 83px 105px; animation: legWalk .96s ease-in-out infinite alternate; }
+  .leg-back  { transform-origin: 67px 105px; animation: legWalk .96s ease-in-out infinite alternate-reverse; }
+
+  .shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 27px;
+    width: 105px;
+    height: 13px;
+    border-radius: 50%;
+    background: rgba(21,37,59,.14);
+    transform: translateX(-50%);
+    animation: shadowPulse .48s ease-in-out infinite alternate;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(22px, 5vw, 30px);
+    line-height: 1.15;
+    color: var(--navy);
+  }
+
+  .status {
+    min-height: 24px;
+    margin: 10px 0 18px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px;
+    border-radius: 50%;
+    background: var(--claro-red);
+    animation: dot 1.1s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .15s; }
+  .dots span:nth-child(3) { animation-delay: .30s; }
+
+  .hint {
+    margin: 0;
+    color: #98a2b3;
+    font-size: 11px;
+  }
+
+  /* Botão apenas para a demonstração do arquivo */
+  .demo-controls {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1000000;
+  }
+  .demo-controls button {
+    border: 0;
+    border-radius: 12px;
+    padding: 11px 15px;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(21,37,59,.22);
+  }
+
+  @keyframes bodyBounce { to { transform: translateX(-50%) translateY(-5px); } }
+  @keyframes shadowPulse { to { width: 88px; opacity: .65; } }
+  @keyframes ladderSway { from { transform: rotate(-2deg); } to { transform: rotate(2.2deg); } }
+  @keyframes armWalk { from { transform: rotate(-11deg); } to { transform: rotate(12deg); } }
+  @keyframes legWalk { from { transform: rotate(-14deg); } to { transform: rotate(15deg); } }
+  @keyframes progress { 0% { left: -40%; } 55% { width: 56%; } 100% { left: 105%; width: 24%; } }
+  @keyframes dot { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+  @media (max-width: 480px) {
+    .loading-card { padding: 28px 18px 24px; border-radius: 20px; }
+    .scene { height: 188px; }
+    .technician { width: 158px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 1.8s !important; animation-iteration-count: infinite !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="portalLoading" role="status" aria-live="polite" aria-label="Portal carregando">
+  <section class="loading-card">
+    <div class="brand-pill"><span class="brand-dot"></span> Equipe técnica</div>
+
+    <div class="scene" aria-hidden="true">
+      <div class="shadow"></div>
+      <div class="track"></div>
+
+      <svg class="technician" viewBox="0 0 174 150" xmlns="http://www.w3.org/2000/svg">
+        <!-- escada no ombro -->
+        <g class="ladder-group" fill="none" stroke="#7d8794" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 28 L149 64"/>
+          <path d="M18 12 L154 48"/>
+          <path d="M30 18 L26 32 M49 23 L45 37 M68 28 L64 42 M87 33 L83 47 M106 38 L102 52 M125 43 L121 57 M144 48 L140 62" stroke-width="3.6"/>
+        </g>
+
+        <!-- cabeça e capacete -->
+        <circle cx="76" cy="46" r="17" fill="#f0b58c"/>
+        <path d="M57 44c0-16 9-25 20-25 12 0 21 9 21 25z" fill="#e30613"/>
+        <path d="M55 43h47" stroke="#b9000b" stroke-width="5" stroke-linecap="round"/>
+        <path d="M74 19v15" stroke="#ff6670" stroke-width="3" opacity=".8"/>
+        <circle cx="83" cy="47" r="1.7" fill="#15253b"/>
+        <path d="M85 55c-3 2-6 2-9 0" fill="none" stroke="#9b553c" stroke-width="1.8" stroke-linecap="round"/>
+
+        <!-- braço traseiro -->
+        <g class="arm-back">
+          <path d="M68 70 L49 87 L40 108" fill="none" stroke="#c90410" stroke-width="12" stroke-linecap="round"/>
+          <circle cx="39" cy="109" r="6" fill="#f0b58c"/>
+        </g>
+
+        <!-- pernas -->
+        <g class="leg-back">
+          <path d="M72 101 L58 123 L51 142" fill="none" stroke="#24364c" stroke-width="13" stroke-linecap="round"/>
+          <path d="M49 142h-14" stroke="#172536" stroke-width="9" stroke-linecap="round"/>
+        </g>
+        <g class="leg-front">
+          <path d="M80 101 L92 123 L106 140" fill="none" stroke="#304963" stroke-width="13" stroke-linecap="round"/>
+          <path d="M105 140h15" stroke="#172536" stroke-width="9" stroke-linecap="round"/>
+        </g>
+
+        <!-- corpo/colete -->
+        <path d="M60 62 Q76 55 92 63 L96 104 Q76 112 56 103z" fill="#e30613"/>
+        <path d="M70 59 L70 106 M84 60 L84 106" stroke="#ff7780" stroke-width="4" opacity=".75"/>
+        <path d="M57 82h38" stroke="#ffd7da" stroke-width="4" opacity=".95"/>
+
+        <!-- braço da frente segurando a escada -->
+        <g class="arm-front">
+          <path d="M91 69 L109 53 L121 53" fill="none" stroke="#e30613" stroke-width="12" stroke-linecap="round"/>
+          <circle cx="122" cy="52" r="6" fill="#f0b58c"/>
+        </g>
+      </svg>
+    </div>
+
+    <h1>Preparando seu portal</h1>
+    <p class="status" id="loadingMessage">Carregando informações <span class="dots"><span></span><span></span><span></span></span></p>
+    <p class="hint">Aguarde enquanto o técnico organiza tudo por aqui.</p>
+  </section>
+</div>
+
+<!-- Controle de demonstração. Pode ser removido ao integrar. -->
+<div class="demo-controls">
+  <button type="button" onclick="showLoading('Atualizando os indicadores')">Testar loading</button>
+</div>
+
+<script>
+  const loading = document.getElementById('portalLoading');
+  const loadingMessage = document.getElementById('loadingMessage');
+
+  function showLoading(message = 'Carregando informações') {
+    loadingMessage.innerHTML = `${message} <span class="dots"><span></span><span></span><span></span></span>`;
+    loading.classList.remove('is-hidden');
+  }
+
+  function hideLoading() {
+    loading.classList.add('is-hidden');
+  }
+
+  // Demonstração: esconde após 4 segundos.
+  // No portal, remova este bloco e execute hideLoading() quando os dados terminarem de carregar.
+  window.addEventListener('load', () => {
+    setTimeout(hideLoading, 4000);
+  });
+
+  // Disponibiliza as funções para qualquer script do portal.
+  window.showPortalLoading = showLoading;
+  window.hidePortalLoading = hideLoading;
+</script>
+</body>
+</html>
