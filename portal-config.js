@@ -10,6 +10,7 @@ window.PORTAL_CONFIG=Object.freeze({
     'dashboard_tnps_claro.html':'atual/tnps.xlsx',
     'dashboard_log_manutencao.html':'atual/LOG_MANUTENCAO.xlsx',
     'painel_nr35_visao_tecnico.html':'atual/nr35.xlsx',
+    'nr35_dash.html':'atual/NR35_Dash.xlsx',
     'painel_certidao_atendimento.html':'atual/certidao_atendimento.xlsx',
     'painel_quebra_total.html':'atual/quebra_total.xlsx',
     'painel_recomendacoes.html':'atual/recomendacoes.xlsx',
