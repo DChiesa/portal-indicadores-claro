@@ -14,26 +14,8 @@
 </style>
 
 <!-- ALTERACAO: cabecalho padrao aprovado, sem interferencia nos scripts do relatorio -->
-<style id="banner-claro-padrao-css">
-  .banner-claro-padrao{width:100%;background:#b40008;position:relative;z-index:20;line-height:0;overflow:hidden}
-  .banner-claro-padrao img{display:block;width:100%;height:auto;min-height:92px;object-fit:cover;object-position:center}
-  .banner-claro-acoes{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:8px 14px;background:#fff;border-bottom:1px solid #d7d7d7;box-shadow:0 2px 7px rgba(0,0,0,.10);position:relative;z-index:20;line-height:normal}
-  .banner-claro-botao{appearance:none;border:1px solid #c5000b;border-radius:8px;background:#fff;color:#a80008;padding:9px 14px;font:700 13px Arial,sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-  .banner-claro-botao:hover,.banner-claro-botao:focus-visible{background:#c5000b;color:#fff;outline:none}
-  @media(max-width:620px){.banner-claro-padrao img{width:auto;height:92px;min-width:100%;max-width:none;position:relative;left:50%;transform:translateX(-50%)}.banner-claro-acoes{justify-content:center;flex-wrap:wrap}.banner-claro-botao{flex:1;justify-content:center;min-width:145px}}
-</style>
-</head>
+<link rel="stylesheet" href="./portal-report-header.css"><script src="./portal-report-header.js" defer></script></head>
 <body>
-<!-- PONTO_APROVADO: conteudo funcional original preservado; apenas o cabecalho foi padronizado -->
-<!-- ALTERACAO: banner novo e botoes de navegacao restaurados -->
-<section class="banner-claro-padrao" id="bannerClaroPadrao" aria-label="Cabecalho padrao dos relatorios Claro">
-  <img src="banner-eventos-operacionais-cluster.png" alt="Eventos Operacionais Cluster - Servicos Tecnicos - Certificado de propriedade: Demetrius Chiesa">
-</section>
-<nav class="banner-claro-acoes" aria-label="Acoes do relatorio">
-  <button type="button" class="banner-claro-botao" onclick="window.location.href='index.html'" title="Voltar para o portal">&#8592; Voltar para o portal</button>
-  <button type="button" class="banner-claro-botao" onclick="window.open(window.location.href,'_blank','noopener,noreferrer')" title="Abrir este relatorio em uma nova janela">&#9635; Abrir em janela</button>
-</nav>
-
 <header class="top"><div class="brand">Claro</div><div><h1>Dashboard AT5 Total</h1><p>Qualidade dos Serviços Técnicos • atual + histórico</p></div><div class="actions"><button class="btn btn-light" id="reload">Atualizar dados</button><button class="btn btn-dark" id="exportCsv">Exportar resumo</button></div></header>
 <main class="wrap">
 <div id="status" class="status">Conectando ao Supabase e carregando a base AT5...</div>
