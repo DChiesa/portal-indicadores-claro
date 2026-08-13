@@ -72,22 +72,29 @@ function card(p){
  div.querySelector('.btnHist').onclick=()=>upload(p,inp.files[0],'historico',st);
  return div
 }
+function caminhoAtualSeguro(p,file){
+ let path=String(p.current_path||caminhoAutomatico(p)||'').trim();
+ const nome=String(file?.name||'').trim();
+ const folha=path.split('/').pop().toLowerCase();
+ const caminhoGeradoPeloVisualizador=/^visualizador_relatorio(?:_html)?(?:_id_?\d+)?\.(?:xlsx|xls|csv|txt)$/i.test(folha);
+ if((!path||caminhoGeradoPeloVisualizador)&&nome)path='atual/'+nome;
+ return path;
+}
 async function upload(p,file,tipo,st){
  if(!file){st.textContent='Selecione um arquivo primeiro.';return}
- let path=tipo==='atual'?p.current_path:p.history_path;
+ if(!/\.(xlsx|xls|csv|txt)$/i.test(file.name)){st.textContent='Impossível carregar arquivo, verifique o formato.';return}
+ let path=tipo==='atual'?caminhoAtualSeguro(p,file):p.history_path;
  const chave=normalizar(p.report_key),titulo=normalizar(p.report_title);
  if(tipo==='atual'&&((chave.includes('estudo')&&chave.includes('codigo'))||(titulo.includes('estudo')&&titulo.includes('codigo'))))path='atual/estudo codigo.xlsx';
  if(!path){st.textContent='Caminho não configurado.';return}
- if(tipo==='atual'){
-  const esperado=String(path).split('/').pop().toLowerCase();
-  if(file.name.toLowerCase()!==esperado){st.textContent='Impossível carregar arquivo, verifique nome ou formato. Nome esperado: '+esperado;return}
- }else path=String(path).replace(/\/$/,'')+'/'+new Date().toISOString().slice(0,10)+'_'+file.name;
+ if(tipo==='historico')path=String(path).replace(/\/$/,'')+'/'+new Date().toISOString().slice(0,10)+'_'+file.name;
  st.textContent='Enviando...';
  const up=await client().storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'60'});
  if(up.error){st.textContent='Erro: '+up.error.message;return}
  await client().rpc('portal_log_upload_v2',{p_arquivo_codigo:p.report_key,p_bucket_id:BUCKET,p_caminho:path,p_tipo:tipo,p_nome_original:file.name,p_tamanho_bytes:file.size,p_resultado:'sucesso',p_mensagem:null});
  st.textContent='Arquivo enviado com sucesso.'
 }
+
 carregar();
 </script><script id="CLARO_VISUAL_FINAL_V2_JS">/* CLARO_VISUAL_FINAL_V2: move os elementos originais; não clona IDs nem eventos */
 (function(){'use strict';
