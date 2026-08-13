@@ -4,6 +4,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NR35 Dashboard | Portal de Indicadores Claro</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
+<script src="./portal-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
@@ -42,7 +44,27 @@
 </section>
 </main><footer>Certificado de propriedade: <strong>Demétrius Chiesa</strong> • Portal de Indicadores Claro</footer>
 <script>
-const CFG={supabaseUrl:'https://frxfoztyctrvsobbawmo.supabase.co',anonKey:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',bucket:'bases-tecnico',current:'atual/NR35_Dash.xlsx',historyPrefix:'historico/nr35_dash/',portalUrl:'../index.html'};
+const PORTAL_CFG=window.PORTAL_CONFIG||{};
+const CFG={
+ supabaseUrl:PORTAL_CFG.SUPABASE_URL||'https://frxfoztyctrvsobbawmo.supabase.co',
+ anonKey:PORTAL_CFG.SUPABASE_PUBLISHABLE_KEY||'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
+ bucket:PORTAL_CFG.BUCKET||'bases-tecnico',
+ current:PORTAL_CFG.FILES?.['nr35_dash.html']||'atual/NR35_Dash.xlsx',
+ historyPrefix:'historico/nr35_dash/',portalUrl:'index.html'
+};
+let sb=null,portalSessionReady=null;
+function supa(){if(!sb)sb=supabase.createClient(CFG.supabaseUrl,CFG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});return sb}
+function solicitarSessaoPortal(timeout=3500){
+ if(portalSessionReady)return portalSessionReady;
+ portalSessionReady=new Promise(async resolve=>{
+  const local=await supa().auth.getSession();if(local.data?.session){resolve(local.data.session);return}
+  let done=false;const finish=s=>{if(done)return;done=true;window.removeEventListener('message',onMsg);resolve(s||null)};
+  const onMsg=async e=>{if(e.origin!==location.origin||e.data?.type!=='PORTAL_SESSION_RESPONSE')return;try{const r=await supa().auth.setSession({access_token:e.data.access_token,refresh_token:e.data.refresh_token});finish(r.data?.session||null)}catch(_){finish(null)}};
+  window.addEventListener('message',onMsg);
+  try{if(parent!==window)parent.postMessage({type:'PORTAL_SESSION_REQUEST'},location.origin)}catch(_){}
+  setTimeout(()=>finish(null),timeout);
+ });return portalSessionReady
+}
 let dados=[],filtrados=[],charts={},sort={key:'data',asc:false};
 const $=id=>document.getElementById(id), norm=v=>String(v??'').trim(), upper=v=>norm(v).toLocaleUpperCase('pt-BR');
 function voltarPortal(){if(window.parent!==window){try{window.parent.location.href=CFG.portalUrl;return}catch(e){}}location.href=CFG.portalUrl}
@@ -51,8 +73,23 @@ function setStatus(ok,text,info=''){$('statusDot').classList.toggle('ok',ok);$('
 function parseData(v){if(v instanceof Date&&!isNaN(v))return v;if(typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);return d?new Date(d.y,d.m-1,d.d):null}if(!v)return null;const s=String(v).trim();let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null}
 function mesKey(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`:''}
 function mapRow(r){const d=parseData(r.DATA);const eleg=upper(r.ELEGIVEL)==='SIM';const sub=norm(r.SUBIU);return{raw:r,dataObj:d,data:d?d.toLocaleDateString('pt-BR'):'',mes:mesKey(d),cidade:norm(r.CIDADE)||'SEM CIDADE',grupo:norm(r.GRUPO)||'SEM GRUPO',tecnico:norm(r.LOGIN_FIELD)||'SEM LOGIN',tipo:norm(r.TIPO_ORD_SRV)||'SEM TIPO',contrato:norm(r.CONTRATO),codBaixa:norm(r.COD_BAIXA),node:norm(r.UN)||'SEM NODE',subiu:sub,elegivel:eleg,status:eleg?(sub?'OK':'NOK'):'DESCONSIDERADO'}}
-async function listarHistorico(){try{const r=await fetch(`${CFG.supabaseUrl}/storage/v1/object/list/${CFG.bucket}`,{method:'POST',headers:{apikey:CFG.anonKey,Authorization:`Bearer ${CFG.anonKey}`,'Content-Type':'application/json'},body:JSON.stringify({prefix:CFG.historyPrefix,limit:100,sortBy:{column:'name',order:'desc'}})});if(!r.ok)throw Error();const list=await r.json();for(const x of list.filter(x=>/nr35_dash_\d{4}-\d{2}\.(xlsx|xls|csv)$/i.test(x.name))){const path=CFG.historyPrefix+x.name;const o=document.createElement('option');o.value=path;o.textContent='Histórico '+x.name.match(/(\d{4}-\d{2})/)[1];$('baseSelector').appendChild(o)}}catch(e){console.warn('Histórico indisponível',e)}}
-async function carregarPath(path){showLoad(true);try{const url=`${CFG.supabaseUrl}/storage/v1/object/public/${CFG.bucket}/${path}`;let r=await fetch(url,{cache:'no-store'});if(!r.ok){r=await fetch(`${CFG.supabaseUrl}/storage/v1/object/authenticated/${CFG.bucket}/${path}`,{headers:{apikey:CFG.anonKey,Authorization:`Bearer ${CFG.anonKey}`},cache:'no-store'})}if(!r.ok)throw Error(`HTTP ${r.status}`);await lerBuffer(await r.arrayBuffer(),path);setStatus(true,'Base carregada',path)}catch(e){setStatus(false,'Não foi possível abrir a base no Supabase',' — use “Prévia local” se necessário');console.error(e)}finally{showLoad(false)}}
+async function listarHistorico(){try{
+ await solicitarSessaoPortal();
+ const {data:list,error}=await supa().storage.from(CFG.bucket).list(CFG.historyPrefix,{limit:100,sortBy:{column:'name',order:'desc'}});
+ if(error)throw error;
+ for(const x of (list||[]).filter(x=>/nr35_dash_\d{4}-\d{2}\.(xlsx|xls|csv)$/i.test(x.name))){const path=CFG.historyPrefix+x.name;const o=document.createElement('option');o.value=path;o.textContent='Histórico '+x.name.match(/(\d{4}-\d{2})/)[1];$('baseSelector').appendChild(o)}
+ }catch(e){console.warn('Histórico indisponível',e)}}
+async function carregarPath(path){showLoad(true);try{
+ setStatus(false,'Autenticando no portal...','');
+ const sessao=await solicitarSessaoPortal();
+ if(!sessao)throw Error('Sessão do portal não recebida. Abra o relatório pelo portal autenticado.');
+ setStatus(false,'Baixando base do Supabase...',` — ${path}`);
+ const {data:blob,error}=await supa().storage.from(CFG.bucket).download(path);
+ if(error)throw error;
+ if(!blob||!blob.size)throw Error('O arquivo retornado está vazio.');
+ await lerBuffer(await blob.arrayBuffer(),path);
+ setStatus(true,'Base carregada',` — ${path}`);
+ }catch(e){setStatus(false,'Não foi possível abrir a base no Supabase',` — ${e.message||e}`);console.error('NR35 Supabase:',e)}finally{showLoad(false)}}
 async function lerBuffer(buf,nome){const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:null,raw:true});dados=rows.map(mapRow);popularFiltros();aplicar();$('baseInfo').textContent=` — ${nome} • ${dados.length.toLocaleString('pt-BR')} linhas`}
 function selected(id){return [...$(id).selectedOptions].map(o=>o.value)}
 function preencher(id,vals,labelFn=v=>v){const prev=new Set(selected(id));$(id).innerHTML='';[...new Set(vals.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true})).forEach(v=>{const o=new Option(labelFn(v),v);o.selected=prev.has(v);$(id).add(o)})}
