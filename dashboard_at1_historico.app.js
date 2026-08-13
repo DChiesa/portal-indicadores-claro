@@ -14,7 +14,7 @@ const CURRENT_PATH=CURRENT_FOLDER+'/'+CURRENT_NAME;
 const HISTORY_FOLDER='historico';
 const HISTORY_RE=/^dashboard_at1_historico_(\d{4})\.(\d{2})\.xlsx$/i;
 const REFRESH_MS=5*60*1000;
-const METAS={TOTAL:.024,GPON:.015,HFC:.025,HIBRIDO:.035};
+const METAS={TOTAL:.024,GPON:.014,HFC:.025,HIBRIDO:.035};
 let sb=null,chart=null,refreshTimer=null;
 let state={analitico:[],base:[],city:'BAGE',type:'TOTAL',start:'',end:'',node:'TODOS',baixa:'TODOS',file:null,sourceKind:'current',catalog:[]};
 function postPortal(type,text){try{parent.postMessage({source:'portal-panel',type,page:'dashboard_at1_historico.html',text},location.origin)}catch(_){}}
