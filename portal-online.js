@@ -124,3 +124,5 @@
     iniciar();
   }
 })();
+
+(function(){if(document.querySelector('script[src*="portal-admin-tools.js"]'))return;var s=document.createElement('script');s.src='./portal-admin-tools.js?v=20260814';s.defer=true;document.head.appendChild(s)})();

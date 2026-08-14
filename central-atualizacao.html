@@ -15,7 +15,8 @@
     .title{font-weight:900;font-size:18px;margin-bottom:4px}.meta{color:var(--muted);font-size:12px;margin-bottom:12px}
     .actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}.btn-current{background:var(--blue);color:#fff}.btn-history{background:var(--claro-red);color:#fff}.btn:disabled{opacity:.35;cursor:not-allowed}
     input[type=file]{display:block;margin:10px 0;max-width:100%}.warn{background:#fff7e6;border:1px solid #ffd591;color:#7a4b00;border-radius:12px;padding:12px;margin-bottom:14px}.ok{background:#ecfdf3;border:1px solid #abefc6;color:#067647;border-radius:12px;padding:12px;margin-bottom:14px}.err{background:#fff1f3;border:1px solid #fecdd6;color:#b42318;border-radius:12px;padding:12px;margin-bottom:14px}.small{font-size:12px;color:var(--muted)}
-  </style>
+  .last-update{margin:8px 0 10px;padding:8px 10px;border-radius:9px;background:#eef5fb;color:#17466f;font-size:12px;font-weight:800}
+</style>
   <script src="./portal-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
@@ -80,10 +81,23 @@ html{scroll-padding-top:var(--clv-h)}body.clv-ready{padding-top:var(--clv-h)!imp
     list.innerHTML = '';
     data.forEach(p => list.appendChild(criarCard(p)));
   }
-  function criarCard(p){
+  function formatarDataAtualizacao(iso){if(!iso)return 'não localizada';const d=new Date(iso);return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d).replace(',', ' às');}
+async function atualizarDataCard(p,alvo){
+ if(!alvo)return;try{
+  const path=String(p.current_path||((typeof caminhoAutomatico==='function')?caminhoAutomatico(p):'')||'').trim();
+  if(!path){alvo.textContent='caminho não configurado';return}
+  const partes=path.split('/'),nome=partes.pop(),pasta=partes.join('/');
+  const c=(typeof client==='function')?client():supabaseClient;
+  const r=await c.storage.from(BUCKET).list(pasta,{search:nome,limit:20});
+  if(r.error){alvo.textContent='indisponível';return}
+  const item=(r.data||[]).find(x=>x.name===nome);
+  alvo.textContent=formatarDataAtualizacao(item?.updated_at||item?.created_at);
+ }catch(e){alvo.textContent='indisponível'}
+}
+function criarCard(p){
     const div = document.createElement('div'); div.className='card';
-    div.innerHTML = `<div class="title">${p.report_title}</div><div class="meta">${p.category_key} • ${p.current_path || ''}</div><div class="small">Atual: ${p.can_update_current?'liberado':'bloqueado'} | Histórico: ${p.can_update_history?'liberado':'bloqueado'}</div><input type="file" accept=".xlsx,.xls,.csv" /><div class="actions"><button class="btn btn-current" ${p.can_update_current?'':'disabled'}>Enviar Atual</button><button class="btn btn-history" ${p.can_update_history?'':'disabled'}>Enviar Histórico</button></div><div class="small status"></div>`;
-    const input = div.querySelector('input'); const status=div.querySelector('.status');
+    div.innerHTML = `<div class="title">${p.report_title}</div><div class="meta">${p.category_key} • ${p.current_path || ''}</div><div class="small">Atual: ${p.can_update_current?'liberado':'bloqueado'} | Histórico: ${p.can_update_history?'liberado':'bloqueado'}</div><div class="last-update">Última atualização: <span class="last-update-value">consultando...</span></div><input type="file" accept=".xlsx,.xls,.csv" /><div class="actions"><button class="btn btn-current" ${p.can_update_current?'':'disabled'}>Enviar Atual</button><button class="btn btn-history" ${p.can_update_history?'':'disabled'}>Enviar Histórico</button></div><div class="small status"></div>`;
+    const input = div.querySelector('input'); const status=div.querySelector('.status'); atualizarDataCard(p,div.querySelector('.last-update-value'));
     div.querySelector('.btn-current').onclick = () => upload(p,input.files[0],'current',status);
     div.querySelector('.btn-history').onclick = () => upload(p,input.files[0],'history',status);
     return div;
@@ -103,7 +117,7 @@ html{scroll-padding-top:var(--clv-h)}body.clv-ready{padding-top:var(--clv-h)!imp
     }
     status.textContent='Enviando...';
     const {error} = await supabaseClient.storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'60'});
-    status.textContent = error ? ('Erro: '+error.message) : 'Arquivo enviado com sucesso.';
+    status.textContent = error ? ('Erro: '+error.message) : 'Arquivo enviado com sucesso.'; if(!error) atualizarDataCard(p,status.closest('.card').querySelector('.last-update-value'));
   }
   carregar();
 })();
