@@ -20,8 +20,7 @@ window.PORTAL_CONFIG=Object.freeze({
     'dashboard_rai_cluster.html':'atual/rai_cluster.xlsx',
     'backbone_analytics.html':'atual/eventos backbone.xlsx',
     'estudo_codigos_cluster.html':'atual/estudo codigo.xlsx',
-    'quebra_migracao.html':'atual/quebra_migracao.xlsx',
-    'Quebra_Migracao.html':'atual/quebra_migracao.xlsx'
-  })
+    "quebra_qualificada.html": "atual/quebra_qualificada.xlsx"
+     })
 });
 window.APP_CONFIG=window.PORTAL_CONFIG;
