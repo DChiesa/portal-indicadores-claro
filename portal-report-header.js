@@ -23,21 +23,11 @@ function removeLegacy(){
  });
 }
 function sessionUser(){
+ const fromUrl=new URLSearchParams(location.search).get('portal_user');if(fromUrl)return clean(fromUrl);
  const candidates=['portal_usuario_nome','usuario_nome','nome_usuario','user_name','portalUserName','nome'];
  for(const k of candidates){const v=localStorage.getItem(k)||sessionStorage.getItem(k);if(v&&v.length<120)return clean(v.replace(/^"|"$/g,''));}
  try{const raw=localStorage.getItem('portalUser');if(raw){const o=JSON.parse(raw);return clean(o.nome||o.name||o.email||'');}}catch(e){}
  return '';
-}
-function requestPortalUser(){
- return new Promise(resolve=>{
-   if(parent===window)return resolve('');
-   let finished=false;
-   const finish=value=>{if(finished)return;finished=true;clearTimeout(timer);window.removeEventListener('message',receive);resolve(clean(value));};
-   const receive=event=>{if(event.origin!==location.origin||event.data?.type!=='PORTAL_SESSION_RESPONSE')return;finish(event.data.email?.split('@')[0]||'');};
-   window.addEventListener('message',receive);
-   const timer=setTimeout(()=>finish(''),1800);
-   parent.postMessage({type:'PORTAL_SESSION_REQUEST'},location.origin);
- });
 }
 async function resolveUser(target){
  let name=sessionUser();
@@ -47,7 +37,6 @@ async function resolveUser(target){
    const client=window.supabaseClient||window.sb||((window.supabase&&cfg.SUPABASE_URL&&key)?window.supabase.createClient(cfg.SUPABASE_URL,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null);
    if(client?.auth?.getSession){const r=await client.auth.getSession();const u=r?.data?.session?.user;name=clean(u?.email?.split('@')[0]||name);}
  }catch(e){}
- if(!name)name=await requestPortalUser();
  target.textContent=(name||'usuário conectado').toUpperCase();
 }
 function latestDate(){
@@ -57,6 +46,10 @@ function latestDate(){
  while((m=re.exec(text))){const d=new Date(+m[3],+m[2]-1,+m[1]);if(d.getFullYear()==+m[3]&&d.getMonth()==+m[2]-1&&d.getDate()==+m[1]&&d<=new Date(now.getFullYear()+1,11,31))found.push({d,label:m[0]});}
  found.sort((a,b)=>b.d-a.d);return found[0]?.label||'';
 }
+function applyActivePortalUser(value){
+ const login=clean(value).split('@')[0];const target=document.getElementById('claroReportUser');if(target&&login)target.textContent=login.toUpperCase();
+}
+window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='PORTAL_ACTIVE_USER')return;applyActivePortalUser(event.data.login);});
 function build(){
  if(document.getElementById('claroReportShell'))return;
  removeLegacy();
