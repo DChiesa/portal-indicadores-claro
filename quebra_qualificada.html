@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quebra Qualificada</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <style>
+    :root{
+      --claro-red:#da291c; --claro-dark:#1f2937; --claro-gray:#f3f4f6; --claro-line:#e5e7eb;
+      --ok:#16a34a; --bad:#dc2626; --text:#111827; --muted:#6b7280; --blue:#2563eb;
+      --card:#ffffff; --shadow:0 14px 38px rgba(17,24,39,.10); --radius:18px;
+    }
+    *{box-sizing:border-box} body{margin:0;background:#f7f8fb;color:var(--text);font-family:Segoe UI,Roboto,Arial,sans-serif}
+    .topbar{background:linear-gradient(135deg,var(--claro-red),#b91c1c);color:#fff;padding:18px 22px 24px;box-shadow:var(--shadow)}
+    .banner{max-width:1440px;margin:auto;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:14px}.logo{width:48px;height:48px;border-radius:14px;background:#fff;color:var(--claro-red);display:grid;place-items:center;font-weight:900;font-size:22px;letter-spacing:-1px}
+    h1{margin:0;font-size:26px;line-height:1.1}.subtitle{margin:6px 0 0;font-size:13px;opacity:.92}.cert{font-size:12px;opacity:.95;border:1px solid rgba(255,255,255,.42);border-radius:999px;padding:8px 12px;background:rgba(255,255,255,.12)}
+    main{max-width:1440px;margin:-14px auto 28px;padding:0 16px}.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap}.tab{border:1px solid #fecaca;background:#fff;color:#991b1b;border-radius:999px;padding:10px 14px;font-weight:700;cursor:pointer}.tab.active{background:var(--claro-red);color:#fff;border-color:var(--claro-red)}
+    .filters{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:12px;margin-top:14px}.field label{font-size:12px;font-weight:800;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px}.field select,.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;font-size:14px;min-height:42px}.field select[multiple]{height:96px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:12px;padding:10px 12px;background:#111827;color:#fff;font-weight:800;cursor:pointer}.btn.secondary{background:#e5e7eb;color:#111827}.btn.red{background:var(--claro-red)}.btn.blue{background:var(--blue)}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.kpi .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase}.kpi .value{font-size:26px;font-weight:900;margin-top:6px}.kpi .hint{font-size:12px;color:var(--muted);margin-top:2px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.chartbox{height:470px;position:relative}.charttitle{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 8px}.charttitle h2{font-size:17px;margin:0}.note{font-size:12px;color:var(--muted)}
+    .status{font-size:13px;color:var(--muted);margin-top:8px}.table-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}table{border-collapse:collapse;width:100%;font-size:12px;background:#fff}th,td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:left;white-space:nowrap}th{position:sticky;top:0;background:#f9fafb;z-index:1;color:#374151}tr:hover{background:#fef2f2}.pill{padding:4px 8px;border-radius:999px;font-weight:800;font-size:11px}.pill.ok{background:#dcfce7}.pill.bad{background:#fee2e2}
+    .empty{padding:24px;text-align:center;color:var(--muted)}
+    @media(max-width:1100px){.filters{grid-template-columns:repeat(2,1fr)}.grid,.cards{grid-template-columns:1fr}.chartbox{height:420px}}@media(max-width:650px){.filters{grid-template-columns:1fr}h1{font-size:22px}.chartbox{height:360px}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="banner"><div class="brand"><div class="logo">CL</div><div><h1>Quebra Qualificada</h1><p class="subtitle">Portal de Indicadores Claro | Supabase automático: atual e histórico | Base analítica sem dinâmicas</p></div></div><div class="cert">Certificado de propriedade: Demétrius Chiesa</div></div></header>
+  <main>
+    <section class="panel">
+      <div class="tabs" id="tabs"></div>
+      <div class="filters">
+        <div class="field"><label>Mês / base</label><select id="mes"></select></div>
+        <div class="field"><label>Cidade</label><select id="cidade"><option value="__ALL__">Todas</option></select></div>
+        <div class="field"><label>LG técnico</label><select id="lg" multiple></select></div>
+        <div class="field"><label>UN técnico</label><select id="un" multiple></select></div>
+        <div class="field"><label>Prévia local</label><input id="localFile" type="file" accept=".xlsx,.xls,.csv" /></div>
+      </div>
+      <div class="actions">
+        <button class="btn red" id="recarregar">Recarregar base</button>
+        <button class="btn blue" id="ordenar">Organizar por maior quebra</button>
+        <button class="btn secondary" id="limpar">Limpar filtros</button>
+        <button class="btn secondary" id="semQuebra">Remover sem quebra da tabela: não</button>
+      </div>
+      <div class="status" id="status">Carregando configuração...</div>
+    </section>
+
+    <section class="cards" id="cards"></section>
+    <section class="grid">
+      <div class="panel"><div class="charttitle"><h2>Quebra por cidade</h2><span class="note">Fixo por base e aba, ignora filtro de cidade, LG e UN</span></div><div class="chartbox"><canvas id="cidadeChart"></canvas></div></div>
+      <div class="panel"><div class="charttitle"><h2>Quebra por técnico</h2><span class="note">Sofre filtro de cidade, LG técnico e UN</span></div><div class="chartbox"><canvas id="tecnicoChart"></canvas></div></div>
+    </section>
+    <section class="panel">
+      <div class="charttitle"><h2>Tabela analítica</h2><span class="note">Cidade / Contrato / LG técnico / Status, com quebra e sem quebra</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Cidade</th><th>Contrato</th><th>LG técnico</th><th>UN técnico</th><th>Status</th><th>Responsável quebra</th><th>Migração</th><th>Data agenda</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    </section>
+  </main>
+<script>
+'use strict';
+const SUPABASE_URL='https://frxfoztyctrvsobbawmo.supabase.co';
+const SUPABASE_KEY='sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL';
+const BUCKET='bases-tecnico';
+const REPORT_CODE='quebra_qualificada';
+const CURRENT_PATH='atual/quebra_qualificada.xlsx';
+const HISTORY_DIR='historico/quebra_qualificada';
+const SHEET_NAME='ANALITICO';
+const META_MIGRACAO=0.18, META_PROSPECT=0.055;
+const tabs=[
+  {id:'quebra_migracao', label:'Quebra migração', migracao:'SIM', qualificada:false, meta:META_MIGRACAO},
+  {id:'qualificada_migracao', label:'Quebra qualificada migração', migracao:'SIM', qualificada:true, meta:META_MIGRACAO},
+  {id:'quebra_prospect', label:'Quebra prospect', migracao:'NAO', qualificada:false, meta:META_PROSPECT},
+  {id:'qualificada_prospect', label:'Quebra qualificada prospect', migracao:'NAO', qualificada:true, meta:META_PROSPECT}
+];
+let sb=null, raw=[], active=tabs[0], sortDesc=false, hideNoBreak=false, cidadeChart=null, tecnicoChart=null, baseOptions=[];
+const $=id=>document.getElementById(id);
+const norm=v=>(v??'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+const clean=v=>(v??'').toString().trim();
+const pct=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const unique=arr=>Array.from(new Set(arr.filter(x=>x!=='' && x!=null))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR'));
+function setStatus(t){$('status').textContent=t}
+function rowMap(row){
+  return {
+    cidade: clean(row.DSC_MUNICIPIO || row.CIDADE || row.MUNICIPIO || row.CIDADE_TECNICO),
+    contrato: clean(row.CONTRATO), lg: clean(row.LOGIN_TEC || row.LG_TECNICO || row.LOGIN_TECNICO), un: clean(row.UN_TECNICO),
+    status: clean(row.TIPO_TRATAMENTO), responsavel: clean(row.RESPONSAVEL_QUEBRA), migracao: norm(row.MIGRACAO),
+    data: row.DAT_AGENDA, raw: row
+  };
+}
+function isBreak(r){return norm(r.status)==='COM QUEBRA DE AGENDA'}
+function isQualified(r){return isBreak(r) && norm(r.responsavel)==='SERVICOS DE CAMPO'}
+function inTab(r, tab=active){return r.migracao===tab.migracao}
+function isNumeralDate(v){return typeof v==='number' && v>25000 && v<80000}
+function excelDate(v){if(!isNumeralDate(v))return clean(v); const d=XLSX.SSF.parse_date_code(v); if(!d)return clean(v); return String(d.d).padStart(2,'0')+'/'+String(d.m).padStart(2,'0')+'/'+d.y}
+function metricRows(rows, tab=active){
+  const denRows=rows.filter(r=>inTab(r,tab));
+  const numRows=denRows.filter(r=>tab.qualificada ? isQualified(r) : isBreak(r));
+  return {num:numRows.length, den:denRows.length, perc:denRows.length?numRows.length/denRows.length:0};
+}
+function groupMetric(rows, key, tab=active){
+  const map=new Map();
+  rows.filter(r=>inTab(r,tab)).forEach(r=>{ const k=clean(r[key])||'(vazio)'; if(!map.has(k))map.set(k,{key:k,num:0,den:0}); const o=map.get(k); o.den++; if(tab.qualificada?isQualified(r):isBreak(r))o.num++; });
+  return Array.from(map.values()).map(o=>({...o,perc:o.den?o.num/o.den:0}));
+}
+function selectedMulti(id){return Array.from($(id).selectedOptions).map(o=>o.value)}
+function filteredForTecnico(){
+  let rows=raw.slice(); const cid=$('cidade').value, lgs=selectedMulti('lg'), uns=selectedMulti('un');
+  if(cid && cid!=='__ALL__') rows=rows.filter(r=>r.cidade===cid);
+  if(lgs.length) rows=rows.filter(r=>lgs.includes(r.lg));
+  if(uns.length) rows=rows.filter(r=>uns.includes(r.un));
+  return rows;
+}
+function colors(data, meta){return data.map(d=>d.perc<=meta?getComputedStyle(document.documentElement).getPropertyValue('--ok').trim():getComputedStyle(document.documentElement).getPropertyValue('--bad').trim())}
+const metaLinePlugin={id:'metaLine', afterDatasetsDraw(chart,args,opts){const {ctx,chartArea,scales}=chart; if(!opts || opts.meta==null || !scales.y)return; const y=scales.y.getPixelForValue(opts.meta*100); if(y<chartArea.top||y>chartArea.bottom)return; ctx.save(); ctx.strokeStyle='#111827'; ctx.setLineDash([6,5]); ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(chartArea.left,y); ctx.lineTo(chartArea.right,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#111827'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='right'; ctx.fillText('Meta '+pct(opts.meta), chartArea.right-4, y-6); ctx.restore();}};
+Chart.register(ChartDataLabels, metaLinePlugin);
+function buildChart(canvasId, chartRef, data, meta){
+  const labels=data.map(d=>d.key), vals=data.map(d=>+(d.perc*100).toFixed(2));
+  if(chartRef) chartRef.destroy();
+  return new Chart($(canvasId), {type:'bar', data:{labels, datasets:[{label:'% quebra', data:vals, backgroundColor:colors(data,meta), borderRadius:8, metaInfo:data, maxBarThickness:38}]}, options:{responsive:true, maintainAspectRatio:false, layout:{padding:{top:26}}, scales:{y:{beginAtZero:true,suggestedMax:Math.max(meta*100*1.45, ...vals, 10), ticks:{callback:v=>v+'%'}}, x:{ticks:{autoSkip:false,maxRotation:65,minRotation:0}}}, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>{const d=c.dataset.metaInfo[c.dataIndex]; return `${pct(d.perc)} | ${d.num}/${d.den}`}}}, datalabels:{anchor:'end', align:'end', offset:2, clip:false, color:'#111827', font:{weight:'900',size:11}, formatter:(v,c)=>{const d=c.dataset.metaInfo[c.dataIndex]; return `${pct(d.perc)}\n${d.num}/${d.den}`}}, metaLine:{meta}}});
+}
+function render(){
+  const baseRows=raw.filter(r=>inTab(r)); const techRows=filteredForTecnico();
+  const m=metricRows(techRows); const total=metricRows(raw); const cidades=unique(raw.map(r=>r.cidade)).length; const tecs=unique(techRows.filter(r=>inTab(r)).map(r=>r.lg)).length;
+  $('cards').innerHTML=`<div class="kpi"><div class="label">Resultado filtrado</div><div class="value ${m.perc<=active.meta?'ok':'bad'}">${pct(m.perc)}</div><div class="hint">${m.num}/${m.den} | Meta ${pct(active.meta)}</div></div><div class="kpi"><div class="label">Resultado geral da aba</div><div class="value ${total.perc<=active.meta?'ok':'bad'}">${pct(total.perc)}</div><div class="hint">${total.num}/${total.den} na base</div></div><div class="kpi"><div class="label">Cidades no analítico</div><div class="value">${cidades}</div><div class="hint">gráfico de cidade fixo</div></div><div class="kpi"><div class="label">Técnicos filtrados</div><div class="value">${tecs}</div><div class="hint">cidade, LG e UN aplicados</div></div>`;
+  let cityData=groupMetric(raw,'cidade'); if(sortDesc) cityData.sort((a,b)=>b.perc-a.perc || b.num-a.num); else cityData.sort((a,b)=>a.key.localeCompare(b.key,'pt-BR'));
+  let techData=groupMetric(techRows,'lg').filter(d=>d.key!=='(vazio)'); if(sortDesc) techData.sort((a,b)=>b.perc-a.perc || b.num-a.num); else techData.sort((a,b)=>a.key.localeCompare(b.key,'pt-BR'));
+  cidadeChart=buildChart('cidadeChart',cidadeChart,cityData,active.meta); tecnicoChart=buildChart('tecnicoChart',tecnicoChart,techData,active.meta);
+  renderTable(techRows.filter(r=>inTab(r)));
+}
+function renderTable(rows){
+  let t=rows.slice(); if(hideNoBreak)t=t.filter(isBreak); if(sortDesc)t.sort((a,b)=>Number(isBreak(b))-Number(isBreak(a)) || a.cidade.localeCompare(b.cidade,'pt-BR'));
+  $('tbody').innerHTML=t.length?t.map(r=>`<tr><td>${r.cidade||'(vazio)'}</td><td>${r.contrato||''}</td><td>${r.lg||'(vazio)'}</td><td>${r.un||''}</td><td><span class="pill ${isBreak(r)?'bad':'ok'}">${r.status}</span></td><td>${r.responsavel||''}</td><td>${r.migracao}</td><td>${excelDate(r.data)}</td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>`;
+}
+function fillSelect(id, values, all){const el=$(id); const old=selectedMulti(id); el.innerHTML=(all?`<option value="__ALL__">Todas</option>`:'')+values.map(v=>`<option value="${v.replaceAll('"','&quot;')}">${v}</option>`).join(''); Array.from(el.options).forEach(o=>{if(old.includes(o.value))o.selected=true});}
+function populateFilters(){fillSelect('cidade', unique(raw.map(r=>r.cidade)), true); fillSelect('lg', unique(raw.map(r=>r.lg)), false); fillSelect('un', unique(raw.map(r=>r.un)), false);}
+function normalizeRows(json){return json.map(rowMap).filter(r=>r.contrato || r.cidade || r.lg)}
+async function parseArrayBuffer(buf){const wb=XLSX.read(buf,{type:'array',cellDates:false}); const sheet=wb.Sheets[SHEET_NAME] || wb.Sheets[wb.SheetNames[0]]; const json=XLSX.utils.sheet_to_json(sheet,{defval:''}); raw=normalizeRows(json); populateFilters(); setStatus(`Base carregada: ${raw.length.toLocaleString('pt-BR')} linhas analíticas.`); render();}
+function pathMonthLabel(path){const name=path.split('/').pop(); const m=name.match(/(20\d{2})[-_\.]?(0[1-9]|1[0-2])|(0[1-9]|1[0-2])[-_\.](20\d{2})/); if(!m)return name; const yyyy=m[1]||m[4], mm=m[2]||m[3]; return `${mm}/${yyyy}`;}
+async function discoverBases(){
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY); baseOptions=[{label:'Atual',path:CURRENT_PATH}];
+  try{const {data,error}=await sb.storage.from(BUCKET).list(HISTORY_DIR,{limit:100,sortBy:{column:'name',order:'desc'}}); if(!error && data){data.filter(f=>/\.(xlsx|xls|csv)$/i.test(f.name)).forEach(f=>baseOptions.push({label:pathMonthLabel(f.name),path:`${HISTORY_DIR}/${f.name}`}));}}catch(e){console.warn(e)}
+  $('mes').innerHTML=baseOptions.map((b,i)=>`<option value="${i}">${b.label}</option>`).join('');
+}
+async function loadSelectedBase(){const opt=baseOptions[+$('mes').value]||baseOptions[0]; setStatus('Baixando base do Supabase: '+opt.path); const {data,error}=await sb.storage.from(BUCKET).download(opt.path); if(error) throw error; await parseArrayBuffer(await data.arrayBuffer());}
+function initTabs(){ $('tabs').innerHTML=tabs.map((t,i)=>`<button class="tab ${i===0?'active':''}" data-id="${t.id}">${t.label}</button>`).join(''); $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab'); if(!b)return; active=tabs.find(t=>t.id===b.dataset.id); document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b)); render();});}
+async function init(){initTabs(); await discoverBases(); try{await loadSelectedBase();}catch(e){setStatus('Não foi possível carregar do Supabase. Use a prévia local ou confira o caminho atual/quebra_qualificada.xlsx. Detalhe: '+(e.message||e));}}
+['cidade','lg','un'].forEach(id=>$(id).addEventListener('change',render)); $('mes').addEventListener('change',()=>loadSelectedBase().catch(e=>setStatus('Erro ao carregar base selecionada: '+(e.message||e)))); $('recarregar').addEventListener('click',()=>loadSelectedBase().catch(e=>setStatus('Erro ao recarregar: '+(e.message||e)))); $('ordenar').addEventListener('click',()=>{sortDesc=!sortDesc; $('ordenar').textContent=sortDesc?'Organização: maior quebra':'Organizar por maior quebra'; render();}); $('limpar').addEventListener('click',()=>{$('cidade').value='__ALL__'; ['lg','un'].forEach(id=>Array.from($(id).options).forEach(o=>o.selected=false)); render();}); $('semQuebra').addEventListener('click',()=>{hideNoBreak=!hideNoBreak; $('semQuebra').textContent='Remover sem quebra da tabela: '+(hideNoBreak?'sim':'não'); render();}); $('localFile').addEventListener('change',async e=>{const f=e.target.files[0]; if(!f)return; setStatus('Lendo arquivo local: '+f.name); await parseArrayBuffer(await f.arrayBuffer());});
+init();
+</script>
+</body>
+</html>
