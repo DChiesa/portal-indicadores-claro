@@ -13,3 +13,18 @@
 @media(max-width:900px){.claro-report-banner{grid-template-columns:150px 1fr}.claro-report-property{grid-column:1/-1;border-left:0;border-top:1px solid var(--claro-line);padding:11px 18px;flex-direction:row;gap:20px}.claro-report-certificate{margin:0}.claro-report-service-text b{font-size:24px}.claro-report-bi{width:52px;height:52px}}
 @media(max-width:600px){.claro-report-banner{display:flex;flex-direction:column}.claro-report-brand{justify-content:center;padding:12px;border-right:0;border-bottom:1px solid var(--claro-line)}.claro-report-logo{width:82px;height:82px;flex-basis:82px;font-size:27px}.claro-report-titlebox{padding:15px}.claro-report-title{font-size:27px}.claro-report-property{flex-direction:column;gap:8px}.claro-report-actions{justify-content:center;flex-wrap:wrap}.claro-report-btn{flex:1;min-width:145px}.claro-report-meta{justify-content:flex-start}}
 @media print{#claroReportShell{box-shadow:none}.claro-report-actions{display:none}}
+
+
+/* AJUSTE SOLICITADO: banner fixo, menor e responsivo. */
+#claroReportShell{position:sticky;top:0;z-index:2147483000}
+.claro-report-banner{min-height:124px;grid-template-columns:minmax(120px,200px) minmax(260px,1fr) minmax(230px,330px)}
+.claro-report-brand,.claro-report-titlebox,.claro-report-property{padding:13px 20px}
+.claro-report-logo{width:88px;height:88px;flex-basis:88px;font-size:29px}
+.claro-report-title{font-size:clamp(25px,3vw,39px)}
+.claro-report-welcome{margin-top:10px;font-size:14px}
+.claro-report-certificate{font-size:13px;margin-bottom:9px}
+.claro-report-service-text small{font-size:14px}.claro-report-service-text b{font-size:27px}
+.claro-report-bi{width:60px;height:60px;font-size:19px}
+.claro-report-meta{min-height:34px;padding:7px 14px}
+.claro-report-actions{min-height:47px;padding:7px 16px}
+@media(max-width:600px){.claro-report-banner{display:grid;grid-template-columns:82px 1fr}.claro-report-brand{padding:8px;border-right:1px solid var(--claro-line);border-bottom:0}.claro-report-logo{width:62px;height:62px;flex-basis:62px;font-size:21px}.claro-report-titlebox{padding:10px 8px}.claro-report-title{font-size:23px}.claro-report-welcome{margin-top:6px;font-size:12px}.claro-report-property{grid-column:1/-1;flex-direction:row;justify-content:space-between;gap:8px;padding:6px 10px}.claro-report-certificate{font-size:10px;text-align:left;margin:0}.claro-report-service{gap:7px}.claro-report-service-text small{font-size:9px;letter-spacing:3px}.claro-report-service-text b{font-size:16px}.claro-report-bi{width:36px;height:36px;border-width:3px;font-size:13px}.claro-report-meta{min-height:30px;padding:6px 10px;font-size:12px}.claro-report-actions{min-height:42px;justify-content:center;padding:6px 8px}.claro-report-btn{flex:1;min-width:0;padding:7px 8px;font-size:11px}}
