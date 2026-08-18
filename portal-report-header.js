@@ -28,6 +28,17 @@ function sessionUser(){
  try{const raw=localStorage.getItem('portalUser');if(raw){const o=JSON.parse(raw);return clean(o.nome||o.name||o.email||'');}}catch(e){}
  return '';
 }
+function requestPortalUser(){
+ return new Promise(resolve=>{
+   if(parent===window)return resolve('');
+   let finished=false;
+   const finish=value=>{if(finished)return;finished=true;clearTimeout(timer);window.removeEventListener('message',receive);resolve(clean(value));};
+   const receive=event=>{if(event.origin!==location.origin||event.data?.type!=='PORTAL_SESSION_RESPONSE')return;finish(event.data.email?.split('@')[0]||'');};
+   window.addEventListener('message',receive);
+   const timer=setTimeout(()=>finish(''),1800);
+   parent.postMessage({type:'PORTAL_SESSION_REQUEST'},location.origin);
+ });
+}
 async function resolveUser(target){
  let name=sessionUser();
  try{
@@ -36,6 +47,7 @@ async function resolveUser(target){
    const client=window.supabaseClient||window.sb||((window.supabase&&cfg.SUPABASE_URL&&key)?window.supabase.createClient(cfg.SUPABASE_URL,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null);
    if(client?.auth?.getSession){const r=await client.auth.getSession();const u=r?.data?.session?.user;name=clean(u?.email?.split('@')[0]||name);}
  }catch(e){}
+ if(!name)name=await requestPortalUser();
  target.textContent=(name||'usuário conectado').toUpperCase();
 }
 function latestDate(){
