@@ -5,6 +5,7 @@ window.PORTAL_CONFIG=Object.freeze({
   AUTO_REFRESH_MS:300000,
   FILES:Object.freeze({
     'dashboard_at1_historico.html':'atual/at1.xlsx',
+    'revisita_30d.html':'atual/REVISITA_30D.xlsx',
     'analise_qualinet.html':'atual/qualinet.txt',
     'analise_do_qualinet_atualizado.html':'atual/qualinet.txt',
     'dashboard_tnps_claro.html':'atual/tnps.xlsx',
@@ -20,7 +21,8 @@ window.PORTAL_CONFIG=Object.freeze({
     'dashboard_rai_cluster.html':'atual/rai_cluster.xlsx',
     'backbone_analytics.html':'atual/eventos backbone.xlsx',
     'estudo_codigos_cluster.html':'atual/estudo codigo.xlsx',
-    "quebra_qualificada.html": "atual/quebra_qualificada.xlsx"
-     })
+    'quebra_migracao.html':'atual/quebra_migracao.xlsx',
+    'Quebra_Migracao.html':'atual/quebra_migracao.xlsx'
+  })
 });
 window.APP_CONFIG=window.PORTAL_CONFIG;
