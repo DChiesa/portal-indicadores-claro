@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Revisita em 30 dias</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--claro:#e30613;--claro2:#b5000b;--ink:#202124;--muted:#6b7280;--line:#e5e7eb;--bg:#f4f6f8;--blue:#0866c6;--green:#14804a;--orange:#f59e0b;--white:#fff}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);font:14px/1.4 Arial,Helvetica,sans-serif;color:var(--ink)}
+    header{background:linear-gradient(100deg,var(--claro2),var(--claro));color:#fff;padding:18px 24px;box-shadow:0 2px 10px #0002}
+    .head{max-width:1520px;margin:auto;display:flex;justify-content:space-between;gap:16px;align-items:center}.title h1{margin:0;font-size:25px}.title p{margin:4px 0 0;opacity:.9}
+    .status{font-size:12px;background:#ffffff20;border:1px solid #ffffff45;border-radius:999px;padding:7px 11px;white-space:nowrap}
+    main{max-width:1520px;margin:18px auto;padding:0 18px 24px}.panel,.card,.chart-card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 8px #1111}
+    .filters{padding:14px;display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px;align-items:end}
+    label{display:block;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;margin-bottom:5px}select,input,button{width:100%;height:38px;border:1px solid #cfd4da;border-radius:8px;background:#fff;padding:0 10px;color:#222}button{cursor:pointer;font-weight:700}button.primary{background:var(--claro);color:#fff;border-color:var(--claro)}button.secondary{color:var(--claro);border-color:#efabb0}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0}.card{padding:16px;border-top:4px solid var(--claro)}.card small{color:var(--muted);font-weight:700}.card strong{display:block;font-size:28px;margin-top:5px}.card.good{border-top-color:var(--green)}.card.bad{border-top-color:var(--orange)}.card.info{border-top-color:var(--blue)}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}.chart-card{padding:14px;min-height:390px}.chart-card.wide{grid-column:1/-1}.chart-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}.chart-title h2{font-size:16px;margin:0}.chart-title span{color:var(--muted);font-size:12px}.canvas-wrap{height:330px}
+    .table-panel{margin-top:12px;overflow:hidden}.table-h{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--line)}.table-h h2{font-size:16px;margin:0}.table-wrap{overflow:auto;max-height:520px}table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px}th,td{padding:9px 10px;border-bottom:1px solid #eceff1;text-align:left;white-space:nowrap}th{position:sticky;top:0;background:#f8f9fa;font-size:11px;text-transform:uppercase;z-index:1}tbody tr:hover{background:#fff6f6}.pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff0f1;color:#b5000b;font-weight:700}.empty{text-align:center;color:var(--muted);padding:30px}
+    footer{max-width:1520px;margin:0 auto 16px;padding:0 18px;color:#666;font-size:12px}.error{display:none;margin:12px 0;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:8px;padding:11px}.loading{position:fixed;inset:0;background:#fff9;z-index:10;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--claro);backdrop-filter:blur(2px)}
+    @media(max-width:1000px){.filters{grid-template-columns:repeat(3,1fr)}.charts{grid-template-columns:1fr}.chart-card.wide{grid-column:auto}.kpis{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){.filters{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.head{align-items:flex-start;flex-direction:column}.chart-card{min-height:350px}.canvas-wrap{height:290px}}
+  </style>
+</head>
+<body>
+<div id="loading" class="loading">Carregando base atual e histórico...</div>
+<header><div class="head"><div class="title"><h1>Revisita em 30 dias</h1><p>Indicador de retorno do contrato em até 30 dias</p></div><div id="status" class="status">Conectando ao Supabase</div></div></header>
+<main>
+  <div id="error" class="error"></div>
+  <section class="panel filters">
+    <div><label for="fCidade">Cidade</label><select id="fCidade"><option value="">Todas</option></select></div>
+    <div><label for="fGrupo">Grupo</label><select id="fGrupo"><option value="">Todos</option></select></div>
+    <div><label for="fServico">Tipo de serviço</label><select id="fServico"><option value="">Todos</option></select></div>
+    <div><label for="fTecnico">Técnico atual</label><select id="fTecnico"><option value="">Todos</option></select></div>
+    <div><label for="fMes">Mês da visita 2</label><input id="fMes" type="month" /></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px"><button id="btnLimpar" class="secondary">Limpar</button><button id="btnCsv" class="primary">Exportar</button></div>
+  </section>
+  <section class="kpis">
+    <article class="card good"><small>COM PADRÃO</small><strong id="kPadrao">0</strong><span>QTD_REVISITAS = 0</span></article>
+    <article class="card bad"><small>SEM PADRÃO</small><strong id="kSem">0</strong><span>QTD_REVISITAS = 1</span></article>
+    <article class="card info"><small>TOTAL</small><strong id="kTotal">0</strong><span>Com padrão + sem padrão</span></article>
+    <article class="card"><small>% COM PADRÃO</small><strong id="kPerc">0,0%</strong><span>Com padrão ÷ total</span></article>
+  </section>
+  <section class="charts">
+    <article class="chart-card"><div class="chart-title"><div><h2>Indicador por cidade</h2><span>Visão fixa do mês, não sofre os demais filtros</span></div></div><div class="canvas-wrap"><canvas id="chCidade"></canvas></div></article>
+    <article class="chart-card"><div class="chart-title"><div><h2>Indicador por técnico</h2><span>Responde aos filtros selecionados</span></div></div><div class="canvas-wrap"><canvas id="chTecnico"></canvas></div></article>
+    <article class="chart-card wide"><div class="chart-title"><div><h2>Sem padrão por dia</h2><span>Quantidade de contratos com QTD_REVISITAS = 1 na data da visita 2</span></div></div><div class="canvas-wrap"><canvas id="chDia"></canvas></div></article>
+  </section>
+  <section class="panel table-panel"><div class="table-h"><div><h2>Casos sem padrão</h2><span id="tableCount">0 registros</span></div></div><div class="table-wrap"><table><thead><tr><th>Contrato</th><th>Cidade</th><th>Grupo</th><th>Serviço</th><th>Data VT 1</th><th>Cód. baixa 1</th><th>Login técnico 1</th><th>Data VT 2</th><th>Cód. baixa 2</th><th>Login técnico 2</th><th>Intervalo</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+</main>
+<footer>Certificado de propriedade: Demétrius Chiesa • Fonte: Supabase / bucket bases-tecnico</footer>
+<script>
+(() => {
+'use strict';
+const CONFIG={
+  supabaseUrl:'https://frxfoztyctrvsobbawmo.supabase.co',
+  supabaseKey:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
+  bucket:'bases-tecnico',
+  currentFile:'atual/REVISITA_30D.xlsx',
+  historyFolder:'historico/revisita-30d',
+  historyFallbackFolder:'historico',
+  historyNamePattern:/^REVISITA_30D.*\.xlsx$/i
+};
+const sb=supabase.createClient(CONFIG.supabaseUrl,CONFIG.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false}});
+const $=id=>document.getElementById(id); let all=[],charts={};
+const norm=v=>String(v??'').trim();
+const flag=v=>{const n=Number(v);return n===1?1:0};
+const date=v=>{if(v instanceof Date&&!isNaN(v))return v;if(typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);return d?new Date(d.y,d.m-1,d.d,d.H||0,d.M||0,d.S||0):null}if(!v)return null;const x=new Date(v);return isNaN(x)?null:x};
+const day=v=>{const d=date(v);return d?d.toLocaleDateString('pt-BR'):'-'};
+const ym=v=>{const d=date(v);return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`:''};
+const cleanRow=r=>({...r,_flag:flag(r.QTD_REVISITAS),_d1:date(r.ANT_PRI_DH_BAIXA_ORDEM_SERVICO),_d2:date(r.DT_BAIXA_ORDEM_SERVICO)});
+async function download(path){const {data,error}=await sb.storage.from(CONFIG.bucket).download(path);if(error)throw new Error(`${path}: ${error.message}`);const wb=XLSX.read(await data.arrayBuffer(),{type:'array',cellDates:true});return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null,raw:true}).map(cleanRow)}
+async function listHistory(){let files=[];const a=await sb.storage.from(CONFIG.bucket).list(CONFIG.historyFolder,{limit:1000,sortBy:{column:'name',order:'asc'}});if(!a.error&&a.data)files=a.data.filter(x=>x.name?.toLowerCase().endsWith('.xlsx')).map(x=>`${CONFIG.historyFolder}/${x.name}`);if(!files.length){const b=await sb.storage.from(CONFIG.bucket).list(CONFIG.historyFallbackFolder,{limit:1000,sortBy:{column:'name',order:'asc'}});if(!b.error&&b.data)files=b.data.filter(x=>CONFIG.historyNamePattern.test(x.name||'')).map(x=>`${CONFIG.historyFallbackFolder}/${x.name}`)}return files}
+function dedupe(rows){const seen=new Set();return rows.filter(r=>{const k=[r.NR_CONTRATO,r.ANT_PRI_DH_BAIXA_ORDEM_SERVICO,r.DT_BAIXA_ORDEM_SERVICO,r.WO_NR_WO,r.ANT_WO_NR_WO].map(norm).join('|');if(seen.has(k))return false;seen.add(k);return true})}
+function fillSelect(id,key){const s=$(id),old=s.value;[...s.options].slice(1).forEach(o=>o.remove());[...new Set(all.map(r=>norm(r[key])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).forEach(v=>s.add(new Option(v,v)));s.value=old}
+function filtered(){const q={ESTR_SUBCLUSTER:$('fCidade').value,GRUPO:$('fGrupo').value,WO_TP_ATIVIDADE:$('fServico').value,WO_LOGIN_CONCLUSAO_ATIVIDADE:$('fTecnico').value};const m=$('fMes').value;return all.filter(r=>(!m||ym(r._d2)===m)&&Object.entries(q).every(([k,v])=>!v||norm(r[k])===v))}
+function monthBase(){const m=$('fMes').value;return all.filter(r=>!m||ym(r._d2)===m)}
+function metrics(rows){const sem=rows.filter(r=>r._flag===1).length,pad=rows.filter(r=>r._flag===0).length,total=pad+sem;return {pad,sem,total,pct:total?pad/total*100:0}}
+function aggregate(rows,key){const m=new Map();rows.forEach(r=>{const k=norm(r[key])||'Não informado',x=m.get(k)||{pad:0,sem:0};r._flag===1?x.sem++:x.pad++;m.set(k,x)});return [...m].map(([label,x])=>({label,...x,total:x.pad+x.sem,pct:(x.pad+x.sem)?x.pad/(x.pad+x.sem)*100:0})).sort((a,b)=>b.total-a.total)}
+const labelPlugin={id:'portalLabels',afterDatasetsDraw(chart){const {ctx}=chart;ctx.save();ctx.textAlign='center';ctx.font='bold 11px Arial';chart.data.datasets.forEach((ds,di)=>{const meta=chart.getDatasetMeta(di);meta.data.forEach((el,i)=>{const v=Number(ds.data[i]||0);if(!v)return;ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(v,el.x,el.y+(el.base-el.y)/2);if(di===chart.data.datasets.length-1){const total=chart.data.datasets.reduce((s,d)=>s+Number(d.data[i]||0),0),pct=total?Number(chart.data.datasets[0].data[i]||0)/total*100:0;ctx.fillStyle='#333';ctx.textBaseline='bottom';ctx.fillText(`${pct.toFixed(1).replace('.',',')}%`,el.x,Math.min(...chart.data.datasets.map((_,j)=>chart.getDatasetMeta(j).data[i].y))-5)}})});ctx.restore()}};
+Chart.register(labelPlugin);
+function bar(id,items,stacked=true){const data={labels:items.map(x=>x.label),datasets:[{label:'Com padrão',data:items.map(x=>x.pad),backgroundColor:'#14804a',borderRadius:4},{label:'Sem padrão',data:items.map(x=>x.sem),backgroundColor:'#f59e0b',borderRadius:4}]};charts[id]?.destroy();charts[id]=new Chart($(id),{type:'bar',data,options:{responsive:true,maintainAspectRatio:false,indexAxis:items.length>12?'y':'x',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{afterBody:c=>{const i=c[0].dataIndex,t=items[i];return `% com padrão: ${t.pct.toFixed(1).replace('.',',')}%`}}}},scales:{x:{stacked,grid:{display:false},ticks:{autoSkip:false,maxRotation:45,minRotation:0}},y:{stacked,beginAtZero:true,grid:{color:'#edf0f2'}}}}})}
+function dayChart(rows){const m=new Map();rows.filter(r=>r._flag===1&&r._d2).forEach(r=>{const k=r._d2.toISOString().slice(0,10);m.set(k,(m.get(k)||0)+1)});const items=[...m].sort(([a],[b])=>a.localeCompare(b));charts.chDia?.destroy();charts.chDia=new Chart($('chDia'),{type:'bar',data:{labels:items.map(([k])=>k.split('-').reverse().join('/')),datasets:[{label:'Sem padrão',data:items.map(([,v])=>v),backgroundColor:'#e30613',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{precision:0}}}}})}
+function renderTable(rows){const x=rows.filter(r=>r._flag===1).sort((a,b)=>(b._d2||0)-(a._d2||0));$('tableCount').textContent=`${x.length.toLocaleString('pt-BR')} registros`;$('tbody').innerHTML=x.length?x.map(r=>`<tr><td><span class="pill">${esc(r.NR_CONTRATO)}</span></td><td>${esc(r.ESTR_SUBCLUSTER)}</td><td>${esc(r.GRUPO)}</td><td>${esc(r.WO_TP_ATIVIDADE)}</td><td>${day(r._d1)}</td><td>${esc(r.ANT_CD_BAIXA_ORDEM_SERVICO)}</td><td>${esc(r.ANT_WO_LOGIN_TEC)}</td><td>${day(r._d2)}</td><td>${esc(r.CD_BAIXA_ORDEM_SERVICO)}</td><td>${esc(r.WO_LOGIN_CONCLUSAO_ATIVIDADE)}</td><td>${esc(r.TEMPO_REVISITA_DIAS)} dia(s)</td></tr>`).join(''):`<tr><td colspan="11" class="empty">Nenhum caso sem padrão para os filtros selecionados.</td></tr>`}
+function esc(v){return norm(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){const rows=filtered(),k=metrics(rows);$('kPadrao').textContent=k.pad.toLocaleString('pt-BR');$('kSem').textContent=k.sem.toLocaleString('pt-BR');$('kTotal').textContent=k.total.toLocaleString('pt-BR');$('kPerc').textContent=`${k.pct.toFixed(1).replace('.',',')}%`;bar('chCidade',aggregate(monthBase(),'ESTR_SUBCLUSTER'));bar('chTecnico',aggregate(rows,'WO_LOGIN_CONCLUSAO_ATIVIDADE').slice(0,30));dayChart(rows);renderTable(rows)}
+function exportCsv(){const rows=filtered().filter(r=>r._flag===1).map(r=>({'CONTRATO':r.NR_CONTRATO,'CIDADE':r.ESTR_SUBCLUSTER,'GRUPO':r.GRUPO,'TIPO_SERVICO':r.WO_TP_ATIVIDADE,'DATA_VT_1':day(r._d1),'COD_BAIXA_1':r.ANT_CD_BAIXA_ORDEM_SERVICO,'LOGIN_TEC_1':r.ANT_WO_LOGIN_TEC,'DATA_VT_2':day(r._d2),'COD_BAIXA_2':r.CD_BAIXA_ORDEM_SERVICO,'LOGIN_TEC_2':r.WO_LOGIN_CONCLUSAO_ATIVIDADE}));const csv=XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows),{FS:';'}),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='revisita_30d_sem_padrao.csv';a.click();URL.revokeObjectURL(a.href)}
+async function init(){try{const hist=await listHistory(),sets=await Promise.allSettled([download(CONFIG.currentFile),...hist.map(download)]),ok=sets.filter(x=>x.status==='fulfilled').flatMap(x=>x.value);if(!ok.length)throw new Error(sets.map(x=>x.reason?.message).filter(Boolean).join(' | ')||'Nenhum arquivo foi carregado.');all=dedupe(ok);fillSelect('fCidade','ESTR_SUBCLUSTER');fillSelect('fGrupo','GRUPO');fillSelect('fServico','WO_TP_ATIVIDADE');fillSelect('fTecnico','WO_LOGIN_CONCLUSAO_ATIVIDADE');const months=[...new Set(all.map(r=>ym(r._d2)).filter(Boolean))].sort();$('fMes').value=months.at(-1)||'';$('status').textContent=`${all.length.toLocaleString('pt-BR')} linhas • ${1+hist.length} arquivo(s)`;render()}catch(e){$('error').style.display='block';$('error').textContent=`Falha no carregamento: ${e.message}. Verifique as policies de leitura do bucket e o caminho da base.`;$('status').textContent='Base indisponível'}finally{$('loading').style.display='none'}}
+['fCidade','fGrupo','fServico','fTecnico','fMes'].forEach(id=>$(id).addEventListener('change',render));$('btnLimpar').addEventListener('click',()=>{['fCidade','fGrupo','fServico','fTecnico','fMes'].forEach(id=>$(id).value='');render()});$('btnCsv').addEventListener('click',exportCsv);init();
+})();
+</script>
+</body>
+</html>
