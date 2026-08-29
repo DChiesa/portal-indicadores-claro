@@ -1,0 +1,322 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portal de Indicadores Claro</title><script src="./portal-config.js"></script><script src="./supabase.min.js"></script><style>
+:root{--r:#e30613;--rd:#a6000d;--blue:#214f79;--blue2:#102847;--ink:#172033;--muted:#667085}*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(--ink)}button,input{font:inherit}.hidden{display:none!important}#login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#a9000c,#ed0012);padding:18px}.loginCard{width:min(430px,100%);background:#fff;border-radius:24px;padding:30px;box-shadow:0 24px 60px #5a000655}.brand{display:flex;gap:13px;align-items:center}.logo{width:58px;height:58px;display:grid;place-items:center;border-radius:17px;background:var(--r);color:#fff;font-weight:900}.brand h1{margin:0;color:var(--r);font-size:25px}.brand p{margin:4px 0;color:var(--muted)}label{display:block;margin:13px 0 6px;font-size:13px;font-weight:750}input{width:100%;padding:14px;border:1px solid #cad2dc;border-radius:12px;background:#edf4ff}.enter{width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:var(--r);color:#fff;font-weight:900}.msg{min-height:20px;margin-top:10px;color:#b00020;font-size:12px}.owner{margin-top:15px;padding-top:14px;border-top:1px solid #e3e8ef;text-align:center;color:#777;font-size:12px}#portal{min-height:100vh;background:linear-gradient(#03091bc9,#03091bd9),url('./assets/fundo-portal.jpg') center/cover fixed}.top{display:flex;align-items:center;gap:14px;padding:16px 22px;background:linear-gradient(100deg,var(--rd),var(--r));color:#fff}.top .logo{width:48px;height:48px}.top h2{margin:0}.top p{margin:3px 0 0}.spacer{flex:1}.logout,.back,.newtab{border:0;border-radius:11px;padding:10px 13px;font-weight:850;cursor:pointer}.logout{background:#fff;color:var(--r)}.content{max-width:1440px;margin:auto;padding:24px 22px 50px}.welcome{color:#fff}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.filter{border:1px solid #ffffffaa;border-radius:999px;background:#ffffff18;color:#fff;padding:9px 14px;font-weight:850;cursor:pointer}.filter.active{background:#fff;color:var(--r)}.category{margin:0 0 18px}.catHead{width:100%;display:flex;align-items:center;gap:10px;border:1px solid #ffffff80;border-radius:12px;padding:11px 14px;background:#ffffff18;color:#fff;font-weight:900;cursor:pointer;text-align:left}.catHead span:last-child{margin-left:auto}.cards{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:20px;padding-top:13px}.category.closed .cards{display:none}.card{position:relative;min-height:225px;padding:0;overflow:hidden;border:1px solid #ffffff88;border-radius:18px;background:#fff;text-align:left;box-shadow:0 12px 30px #0005;cursor:pointer;transition:.2s}.card:hover{transform:translateY(-4px)}.thumb{height:126px;display:grid;place-items:center;border-bottom:3px solid #fff;background:linear-gradient(135deg,#b0000c,var(--r));color:#fff;font-size:22px;font-weight:900;text-align:center;padding:13px;text-transform:uppercase}.adminThumb{background:linear-gradient(135deg,var(--blue2),var(--blue));border-bottom-color:#5aa0d6}.cardInfo{display:flex;align-items:center;gap:12px;padding:14px 16px}.icon{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;background:#eef4f9;font-size:22px}.card b,.card small{display:block}.card b{font-size:13px}.card small{margin-top:5px;color:var(--muted);font-size:11px}.arrow{position:absolute;right:10px;top:10px;width:31px;height:31px;display:grid;place-items:center;border-radius:50%;background:#fff;color:var(--r);font-weight:900}.adminCard .arrow{color:var(--blue)}.viewerHead{height:59px;display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #ddd;background:#fff}.back{background:#e9edf2}.newtab{margin-left:auto;background:#1479d7;color:#fff}.frame{width:100%;height:calc(100vh - 59px);border:0}@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.cards{grid-template-columns:1fr}.top p{display:none}}
+</style>
+<style id="CLARO_VIEWER_FIX_V2">
+#viewer .viewerHead{display:none!important}
+#viewer .frame{width:100%!important;height:100vh!important;border:0!important;display:block!important}
+#viewer{height:100vh!important;overflow:hidden!important;background:#fff!important}
+</style>
+<!-- ALTERACAO_LOADING_PORTAL_INICIO: somente overlay visual de entrada -->
+<style id="portal-loading-styles">
+  :root {
+    --claro-red: #e30613;
+    --claro-red-dark: #b9000b;
+    --navy: #15253b;
+    --muted: #667085;
+    --panel: rgba(255,255,255,.96);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #f4f6f9 0%, #ffffff 50%, #f4f6f9 100%);
+    color: var(--navy);
+  }
+
+  /* Overlay pronto para ser usado no portal */
+  #portalLoading {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(227,6,19,.10), transparent 34%),
+      rgba(246,248,251,.96);
+    backdrop-filter: blur(7px);
+    transition: opacity .35s ease, visibility .35s ease;
+  }
+
+  #portalLoading.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .loading-card {
+    width: min(520px, 94vw);
+    padding: 34px 28px 28px;
+    border: 1px solid rgba(21,37,59,.08);
+    border-radius: 24px;
+    background: var(--panel);
+    box-shadow: 0 24px 70px rgba(21,37,59,.16);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .brand-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 18px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: #fff0f1;
+    color: var(--claro-red);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--claro-red);
+    box-shadow: 0 0 0 5px rgba(227,6,19,.12);
+  }
+
+  .scene {
+    position: relative;
+    height: 205px;
+    margin: 0 auto 8px;
+    overflow: hidden;
+  }
+
+  .track {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    bottom: 34px;
+    height: 3px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, transparent, #c7cdd6 15%, #c7cdd6 85%, transparent);
+  }
+
+  .track::after {
+    content: "";
+    position: absolute;
+    inset: -1px auto -1px 0;
+    width: 38%;
+    border-radius: inherit;
+    background: var(--claro-red);
+    animation: progress 2.2s ease-in-out infinite;
+  }
+
+  .technician {
+    position: absolute;
+    left: 50%;
+    bottom: 34px;
+    width: 174px;
+    height: 150px;
+    transform: translateX(-50%);
+    animation: bodyBounce .48s ease-in-out infinite alternate;
+    filter: drop-shadow(0 12px 9px rgba(21,37,59,.16));
+  }
+
+  .ladder-group {
+    transform-origin: 84px 52px;
+    animation: ladderSway .96s ease-in-out infinite alternate;
+  }
+
+  .arm-front { transform-origin: 91px 71px; animation: armWalk .96s ease-in-out infinite alternate; }
+  .arm-back  { transform-origin: 70px 70px; animation: armWalk .96s ease-in-out infinite alternate-reverse; }
+  .leg-front { transform-origin: 83px 105px; animation: legWalk .96s ease-in-out infinite alternate; }
+  .leg-back  { transform-origin: 67px 105px; animation: legWalk .96s ease-in-out infinite alternate-reverse; }
+
+  .shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 27px;
+    width: 105px;
+    height: 13px;
+    border-radius: 50%;
+    background: rgba(21,37,59,.14);
+    transform: translateX(-50%);
+    animation: shadowPulse .48s ease-in-out infinite alternate;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(22px, 5vw, 30px);
+    line-height: 1.15;
+    color: var(--navy);
+  }
+
+  .status {
+    min-height: 24px;
+    margin: 10px 0 18px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px;
+    border-radius: 50%;
+    background: var(--claro-red);
+    animation: dot 1.1s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .15s; }
+  .dots span:nth-child(3) { animation-delay: .30s; }
+
+  .hint {
+    margin: 0;
+    color: #98a2b3;
+    font-size: 11px;
+  }
+
+  /* Botão apenas para a demonstração do arquivo */
+  .demo-controls {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1000000;
+  }
+  .demo-controls button {
+    border: 0;
+    border-radius: 12px;
+    padding: 11px 15px;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(21,37,59,.22);
+  }
+
+  @keyframes bodyBounce { to { transform: translateX(-50%) translateY(-5px); } }
+  @keyframes shadowPulse { to { width: 88px; opacity: .65; } }
+  @keyframes ladderSway { from { transform: rotate(-2deg); } to { transform: rotate(2.2deg); } }
+  @keyframes armWalk { from { transform: rotate(-11deg); } to { transform: rotate(12deg); } }
+  @keyframes legWalk { from { transform: rotate(-14deg); } to { transform: rotate(15deg); } }
+  @keyframes progress { 0% { left: -40%; } 55% { width: 56%; } 100% { left: 105%; width: 24%; } }
+  @keyframes dot { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+  @media (max-width: 480px) {
+    .loading-card { padding: 28px 18px 24px; border-radius: 20px; }
+    .scene { height: 188px; }
+    .technician { width: 158px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 1.8s !important; animation-iteration-count: infinite !important; }
+  }
+
+</style>
+<!-- ALTERACAO_LOADING_PORTAL_FIM -->
+</head><body>
+<!-- ALTERACAO_LOADING_PORTAL_INICIO: exibido acima do portal sem alterar login, Supabase ou relatorios -->
+<div id="portalLoading" role="status" aria-live="polite" aria-label="Portal carregando">
+  <section class="loading-card">
+    <div class="brand-pill"><span class="brand-dot"></span> Equipe técnica</div>
+
+    <div class="scene" aria-hidden="true">
+      <div class="shadow"></div>
+      <div class="track"></div>
+
+      <svg class="technician" viewBox="0 0 174 150" xmlns="http://www.w3.org/2000/svg">
+        <!-- escada no ombro -->
+        <g class="ladder-group" fill="none" stroke="#7d8794" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 28 L149 64"/>
+          <path d="M18 12 L154 48"/>
+          <path d="M30 18 L26 32 M49 23 L45 37 M68 28 L64 42 M87 33 L83 47 M106 38 L102 52 M125 43 L121 57 M144 48 L140 62" stroke-width="3.6"/>
+        </g>
+
+        <!-- cabeça e capacete -->
+        <circle cx="76" cy="46" r="17" fill="#f0b58c"/>
+        <path d="M57 44c0-16 9-25 20-25 12 0 21 9 21 25z" fill="#e30613"/>
+        <path d="M55 43h47" stroke="#b9000b" stroke-width="5" stroke-linecap="round"/>
+        <path d="M74 19v15" stroke="#ff6670" stroke-width="3" opacity=".8"/>
+        <circle cx="83" cy="47" r="1.7" fill="#15253b"/>
+        <path d="M85 55c-3 2-6 2-9 0" fill="none" stroke="#9b553c" stroke-width="1.8" stroke-linecap="round"/>
+
+        <!-- braço traseiro -->
+        <g class="arm-back">
+          <path d="M68 70 L49 87 L40 108" fill="none" stroke="#c90410" stroke-width="12" stroke-linecap="round"/>
+          <circle cx="39" cy="109" r="6" fill="#f0b58c"/>
+        </g>
+
+        <!-- pernas -->
+        <g class="leg-back">
+          <path d="M72 101 L58 123 L51 142" fill="none" stroke="#24364c" stroke-width="13" stroke-linecap="round"/>
+          <path d="M49 142h-14" stroke="#172536" stroke-width="9" stroke-linecap="round"/>
+        </g>
+        <g class="leg-front">
+          <path d="M80 101 L92 123 L106 140" fill="none" stroke="#304963" stroke-width="13" stroke-linecap="round"/>
+          <path d="M105 140h15" stroke="#172536" stroke-width="9" stroke-linecap="round"/>
+        </g>
+
+        <!-- corpo/colete -->
+        <path d="M60 62 Q76 55 92 63 L96 104 Q76 112 56 103z" fill="#e30613"/>
+        <path d="M70 59 L70 106 M84 60 L84 106" stroke="#ff7780" stroke-width="4" opacity=".75"/>
+        <path d="M57 82h38" stroke="#ffd7da" stroke-width="4" opacity=".95"/>
+
+        <!-- braço da frente segurando a escada -->
+        <g class="arm-front">
+          <path d="M91 69 L109 53 L121 53" fill="none" stroke="#e30613" stroke-width="12" stroke-linecap="round"/>
+          <circle cx="122" cy="52" r="6" fill="#f0b58c"/>
+        </g>
+      </svg>
+    </div>
+
+    <h1>Preparando seu portal</h1>
+    <p class="status" id="loadingMessage">Carregando informações <span class="dots"><span></span><span></span><span></span></span></p>
+    <p class="hint">Aguarde enquanto o técnico organiza tudo por aqui.</p>
+  </section>
+</div>
+
+</div>
+<!-- ALTERACAO_LOADING_PORTAL_FIM -->
+<section id="login"><div class="loginCard"><div class="brand"><div class="logo">Claro</div><div><h1>Portal de Indicadores</h1><p>Acesso protegido pelo Supabase</p></div></div><form id="loginForm"><label>E-mail</label><input id="email" type="email" required autocomplete="username"><label>Senha</label><input id="password" type="password" required autocomplete="current-password"><button id="loginBtn" class="enter">Entrar</button><div id="msg" class="msg"></div></form><div class="owner">Propriedade e criação: Demétrius Chiesa</div></div></section><section id="portal" class="hidden"><header class="top"><div class="logo">Claro</div><div><h2>Portal de Indicadores</h2><p id="userInfo">Performance, qualidade e atualização automática</p></div><div class="spacer"></div><button id="logout" class="logout">Sair</button></header><main class="content"><h2 class="welcome">Selecione uma categoria ou painel</h2><div id="filters" class="filters"></div><div id="categories"></div></main></section><section id="viewer" class="hidden"><div class="viewerHead"><button id="back" class="back">← Voltar ao portal</button><strong id="viewerTitle">Painel</strong><span id="viewerStatus">Abrindo...</span><button id="newtab" class="newtab">Abrir em nova aba</button></div><iframe id="frame" class="frame"></iframe></section><script>
+'use strict';const $=id=>document.getElementById(id),C=window.PORTAL_CONFIG,CATS=[['manutencao','Manutenção'],['instalacao','Instalação'],['rede','Rede'],['headend','Headend'],['backbone','Backbone'],['filtro','Filtro'],['tecnico','Técnico']];let sb,page='',pages=[],portalLogin='',admin=false,canUpdateCenter=false,current='todos';
+const REPOSITORY_REPORTS=[
+{codigo:'estudo_codigos_cluster',nome:'Estudo de Códigos AT1',arquivo:'estudo_codigos_cluster.html',categoria:'manutencao'},
+{codigo:'analise_qualinet',nome:'Análise Qualinet',arquivo:'analise_qualinet.html',categoria:'tecnico'},
+{codigo:'backbone_analytics',nome:'Backbone Analytics',arquivo:'backbone_analytics.html',categoria:'backbone'},
+{codigo:'dashboard_at1_historico',nome:'AT1 / G1 Histórico',arquivo:'dashboard_at1_historico.html',categoria:'instalacao'},
+{codigo:'dashboard_log_manutencao',nome:'Log Manutenção',arquivo:'dashboard_log_manutencao.html',categoria:'manutencao'},
+{codigo:'dashboard_rai_cluster',nome:'RAI Cluster',arquivo:'dashboard_rai_cluster.html',categoria:'rede'},
+{codigo:'dashboard_tnps_claro',nome:'TNPS Claro',arquivo:'dashboard_tnps_claro.html',categoria:'tecnico'},
+{codigo:'painel_certidao_atendimento',nome:'Certidão de Atendimento',arquivo:'painel_certidao_atendimento.html',categoria:'tecnico'},
+{codigo:'painel_nr35_visao_tecnico',nome:'NR35 - Visão Técnico',arquivo:'painel_nr35_visao_tecnico.html',categoria:'tecnico'},
+{codigo:'painel_quebra_total',nome:'Quebra Total',arquivo:'painel_quebra_total.html',categoria:'manutencao'},
+{codigo:'painel_recomendacoes',nome:'Recomendações',arquivo:'painel_recomendacoes.html',categoria:'tecnico'},
+{codigo:'projeto_gpon_cluster',nome:'Projeto GPON Cluster',arquivo:'projeto_gpon_cluster.html',categoria:'rede'},
+{codigo:'relatorio_flag_24h_graf_diario',nome:'FLAG 24h - Gráfico Diário',arquivo:'relatorio_flag_24h_graf_diario.html',categoria:'manutencao'},
+{codigo:'relatorio_manifestos_rrs',nome:'Manifestos RRS',arquivo:'relatorio_manifestos_rrs.html',categoria:'rede'},
+{codigo:'tecnico_certificado',nome:'Técnico Certificado',arquivo:'tecnico_certificado.html',categoria:'tecnico'}
+];
+function mergeRepositoryReports(list){const map=new Map(REPOSITORY_REPORTS.map(x=>[x.arquivo.toLowerCase(),{...x}]));for(const x of (list||[])){const key=String(resolveReportPage(x)||x.arquivo||'').toLowerCase();map.set(key,{...(map.get(key)||{}),...x,arquivo:resolveReportPage(x)||x.arquivo});}return [...map.values()];}function show(x){['login','portal','viewer'].forEach(id=>$(id).classList.toggle('hidden',id!==x))}function client(){if(!sb)sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return sb}function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function resolveReportPage(x){const key=String(x.codigo||'').toLowerCase().trim(),name=String(x.nome||'').toLowerCase().trim();if(key==='projeto_gpon_cluster'||name==='projeto gpon cluster')return 'projeto_gpon_cluster.html';return x.arquivo}function reportCard(x){const cat=CATS.find(c=>c[0]===(x.categoria||'manutencao'))?.[1]||x.categoria||'Manutenção';const target=resolveReportPage(x);return `<button type="button" class="card" data-page="${esc(target)}" data-title="${esc(x.nome)}"><span class="arrow">›</span><div class="thumb">${esc(x.nome)}</div><div class="cardInfo"><span class="icon">📊</span><span><b>${esc(x.nome)}</b><small>${esc(cat)}</small></span></div></button>`}function adminCard(nome,arquivo,mini,desc){return `<button type="button" class="card adminCard" data-page="${arquivo}" data-title="${nome}"><span class="arrow">›</span><div class="thumb adminThumb">${mini}</div><div class="cardInfo"><span class="icon">🔐</span><span><b>${nome}</b><small>${desc}</small></span></div></button>`}function bind(){document.querySelectorAll('.catHead').forEach(b=>b.onclick=()=>{const s=b.closest('.category');s.classList.toggle('closed');b.lastElementChild.textContent=s.classList.contains('closed')?'+':'−'});document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{page=c.dataset.page;$('viewerTitle').textContent=c.dataset.title;$('viewerStatus').textContent='Abrindo...';const sep=page.includes('?')?'&':'?';$('frame').src=page+sep+'portal_user='+encodeURIComponent(portalLogin);show('viewer')})}function render(){const available=CATS.filter(c=>pages.some(p=>(p.categoria||'manutencao')===c[0]));$('filters').innerHTML=[['todos','Todos'],...available].map(c=>`<button class="filter ${current===c[0]?'active':''}" data-filter="${c[0]}">${c[1]}</button>`).join('');document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{current=b.dataset.filter;render()});let html='';for(const [code,label] of available){if(current!=='todos'&&current!==code)continue;const list=pages.filter(p=>(p.categoria||'manutencao')===code);html+=`<section class="category"><button class="catHead"><span>${label}</span><small>${list.length} painel(is)</small><span>−</span></button><div class="cards">${list.map(reportCard).join('')}</div></section>`}if((admin||canUpdateCenter)&&(current==='todos'||current==='manutencao')){const adminCards=admin?`${adminCard('Central de Atualização','atualizador_relatorios.html','ATUALIZAR','Bases atuais e históricas')}${adminCard('Administrar Permissões','admin_permissoes.html','PERMISSÕES','Usuários e acessos')}${adminCard('Gerenciar Relatórios','admin_relatorios.html','NOVO RELATÓRIO','Categorias e upload HTML')}${adminCard('Central de Logins','Central_de_Logins.html','CENTRAL DE LOGINS','Usuários, logins técnicos e seções')}`:adminCard('Central de Atualização','atualizador_relatorios.html','ATUALIZAR','Bases atuais e históricas');html+=`<section class="category"><button class="catHead"><span>Administração</span><small>${admin?'4 módulos':'1 módulo'}</small><span>−</span></button><div class="cards">${adminCards}</div></section>`;}$('categories').innerHTML=html;bind()}async function loadPortal(user){const p=await client().rpc('obter_meu_perfil'),meu=p.data?.[0];if(p.error||!meu||!meu.ativo)throw Error('Usuário sem perfil ativo.');$('userInfo').textContent=`${meu.nome} · perfil ${meu.perfil}`;const email=String(user.email||'').toLowerCase();portalLogin=email.split('@')[0];admin=email.includes('demetrius377');canUpdateCenter=admin;try{const up=await client().rpc('portal_can_see_update_center',{p_email:user.email});if(!up.error)canUpdateCenter=canUpdateCenter||up.data===true;}catch(_){canUpdateCenter=admin;}const q=await client().rpc('listar_minhas_paginas_portal');if(q.error)throw q.error;pages=q.data||[];render()}async function enter(session){if(!session){show('login');return}try{await loadPortal(session.user);show('portal')}catch(e){show('login');$('msg').textContent=e.message}}async function init(){const{data}=await client().auth.getSession();await enter(data.session)}$('loginForm').onsubmit=async e=>{e.preventDefault();$('loginBtn').disabled=true;$('msg').textContent='Validando...';const{data,error}=await client().auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('loginBtn').disabled=false;if(error){$('msg').textContent=error.message;return}$('msg').textContent='';await enter(data.session)};$('logout').onclick=async()=>{await client().auth.signOut();show('login')};window.addEventListener('message',async e=>{if(e.data?.type!=='PORTAL_SESSION_REQUEST')return;const isSameOrigin=e.origin===location.origin;const isSlaOpaque=e.origin==='null'&&e.data?.report==='sla_pme_4h';if(!isSameOrigin&&!isSlaOpaque)return;const {data}=await client().auth.getSession();if(data.session&&e.source){const target=isSameOrigin?e.origin:'*';e.source.postMessage({type:'PORTAL_SESSION_RESPONSE',report:'sla_pme_4h',email:data.session.user.email||'',access_token:data.session.access_token,refresh_token:data.session.refresh_token},target)}});$('frame').onload=()=>{$('viewerStatus').textContent='Carregado';try{const targetOrigin=location.origin&&location.origin!=='null'?location.origin:'*';$('frame').contentWindow.postMessage({type:'PORTAL_ACTIVE_USER',login:portalLogin},targetOrigin)}catch(_){}};$('back').onclick=()=>{$('frame').src='about:blank';show('portal')};$('newtab').onclick=()=>{if(!page)return;const sep=page.includes('?')?'&':'?';window.open(page+sep+'portal_user='+encodeURIComponent(portalLogin),'_blank','noopener')};init();
+</script><script src="./portal-online.js" defer></script>
+<!-- ALTERACAO_LOADING_PORTAL_INICIO: controle da tela de entrada -->
+<script id="portal-loading-script">
+  const loading = document.getElementById('portalLoading');
+  const loadingMessage = document.getElementById('loadingMessage');
+
+  function showLoading(message = 'Carregando informações') {
+    loadingMessage.innerHTML = `${message} <span class="dots"><span></span><span></span><span></span></span>`;
+    loading.classList.remove('is-hidden');
+  }
+
+  function hideLoading() {
+    loading.classList.add('is-hidden');
+  }
+
+  // Demonstração: esconde após 4 segundos.
+  // No portal, remova este bloco e execute hideLoading() quando os dados terminarem de carregar.
+  window.addEventListener('load', () => {
+    setTimeout(hideLoading, 1500);
+  });
+
+  // Disponibiliza as funções para qualquer script do portal.
+  window.showPortalLoading = showLoading;
+  window.hidePortalLoading = hideLoading;
+
+</script>
+<!-- ALTERACAO_LOADING_PORTAL_FIM -->
+</body></html>
