@@ -1,0 +1,15 @@
+(function(){
+'use strict';
+if(window.__SLA_PME_LOADER_FIX__)return;
+window.__SLA_PME_LOADER_FIX__=true;
+const cfg=window.PORTAL_CONFIG||{};
+const BUCKET=cfg.BUCKET||'bases-tecnico';
+const PATH=cfg.FILES?.['sla_pme_4h.html']||'atual/sla_pme_4h.xlsx';
+const statusEl=()=>document.getElementById('status');
+const dotEl=()=>document.getElementById('dot');
+function show(text,kind){const s=statusEl();if(s)s.textContent=text;const d=dotEl();if(d)d.className=kind||'';console[kind==='bad'?'error':'info']('[SLA PME 4H]',text)}
+function ensureXlsx(){return new Promise((resolve,reject)=>{if(window.XLSX)return resolve();const urls=['./xlsx.full.min.js','https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'];let i=0;function next(){if(i>=urls.length)return reject(new Error('Biblioteca XLSX não carregou. Publique xlsx.full.min.js na raiz do portal.'));const s=document.createElement('script');s.src=urls[i++];s.onload=()=>window.XLSX?resolve():next();s.onerror=next;document.head.appendChild(s)}next()})}
+async function getClient(){if(!window.supabase)throw new Error('supabase.min.js não carregou.');const key=cfg.SUPABASE_PUBLISHABLE_KEY||cfg.SUPABASE_ANON_KEY;if(!cfg.SUPABASE_URL||!key)throw new Error('portal-config.js não possui URL/chave do Supabase.');const client=window.__SLA_SUPABASE_CLIENT__||(window.__SLA_SUPABASE_CLIENT__=window.supabase.createClient(cfg.SUPABASE_URL,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}));let session=(await client.auth.getSession()).data.session;if(!session&&parent!==window){session=await new Promise(resolve=>{let done=false;const h=async e=>{if(e.origin!==location.origin||e.data?.type!=='PORTAL_SESSION_RESPONSE')return;done=true;removeEventListener('message',h);if(e.data.access_token&&e.data.refresh_token){const r=await client.auth.setSession({access_token:e.data.access_token,refresh_token:e.data.refresh_token});resolve(r.data.session)}else resolve(null)};addEventListener('message',h);parent.postMessage({type:'PORTAL_SESSION_REQUEST'},location.origin);setTimeout(()=>{if(!done){removeEventListener('message',h);resolve(null)}},2000)});}if(!session)throw new Error('Sessão do portal não foi recebida.');return client}
+async function start(){try{show('Localizando '+BUCKET+'/'+PATH+'...');const client=await getClient();const r=await client.storage.from(BUCKET).download(PATH);if(r.error)throw r.error;if(!r.data)throw new Error('Download retornou vazio.');show('Excel baixado. Processando '+Math.round(r.data.size/1024)+' KB...');await ensureXlsx();if(typeof window.parse!=='function')throw new Error('Função parse() do relatório não foi encontrada.');await window.parse(await r.data.arrayBuffer());show(BUCKET+'/'+PATH+' carregado com sucesso.','ok')}catch(e){show('Falha: '+(e?.message||String(e)),'bad')}finally{document.getElementById('loading')?.classList.add('hide')}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();

@@ -22,7 +22,8 @@ window.PORTAL_CONFIG=Object.freeze({
     'backbone_analytics.html':'atual/eventos backbone.xlsx',
     'estudo_codigos_cluster.html':'atual/estudo codigo.xlsx',
     'quebra_migracao.html':'atual/quebra_migracao.xlsx',
-    'Quebra_Migracao.html':'atual/quebra_migracao.xlsx'
+    'Quebra_Migracao.html':'atual/quebra_migracao.xlsx',
+    'sla_pme_4h.html':'atual/sla_pme_4h.xlsx'
   })
 });
 window.APP_CONFIG=window.PORTAL_CONFIG;
