@@ -1,29 +1,10 @@
-window.PORTAL_CONFIG=Object.freeze({
-  SUPABASE_URL:'https://frxfoztyctrvsobbawmo.supabase.co',
-  SUPABASE_PUBLISHABLE_KEY:'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
-  BUCKET:'bases-tecnico',
-  AUTO_REFRESH_MS:300000,
-  FILES:Object.freeze({
-    'dashboard_at1_historico.html':'atual/at1.xlsx',
-    'revisita_30d.html':'atual/REVISITA_30D.xlsx',
-    'analise_qualinet.html':'atual/qualinet.txt',
-    'analise_do_qualinet_atualizado.html':'atual/qualinet.txt',
-    'dashboard_tnps_claro.html':'atual/tnps.xlsx',
-    'dashboard_log_manutencao.html':'atual/LOG_MANUTENCAO.xlsx',
-    'painel_nr35_visao_tecnico.html':'atual/nr35.xlsx',
-    'nr35_dash.html':'atual/NR35_Dash.xlsx',
-    'painel_certidao_atendimento.html':'atual/certidao_atendimento.xlsx',
-    'painel_quebra_total.html':'atual/quebra_total.xlsx',
-    'painel_recomendacoes.html':'atual/recomendacoes.xlsx',
-    'relatorio_flag_24h_graf_diario.html':'atual/flag_24h.xlsx',
-    'tecnico_certificado.html':'atual/tecnico_certificado_atual.xlsx',
-    'relatorio_manifestos_rrs.html':'atual/MANIF RRS.xlsx',
-    'dashboard_rai_cluster.html':'atual/rai_cluster.xlsx',
-    'backbone_analytics.html':'atual/eventos backbone.xlsx',
-    'estudo_codigos_cluster.html':'atual/estudo codigo.xlsx',
-    'quebra_migracao.html':'atual/quebra_migracao.xlsx',
-    'Quebra_Migracao.html':'atual/quebra_migracao.xlsx',
-    'sla_pme_4h.html':'atual/sla_pme_4h.xlsx'
+'use strict';
+window.PORTAL_CONFIG = Object.freeze({
+  SUPABASE_URL: 'https://frxfoztyctrvsobbawmo.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
+  SUPABASE_ANON_KEY: 'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
+  BUCKET: 'bases-tecnico',
+  FILES: Object.freeze({
+    'sla_pme_4h.html': 'atual/sla_pme_4h.xlsx'
   })
 });
-window.APP_CONFIG=window.PORTAL_CONFIG;
