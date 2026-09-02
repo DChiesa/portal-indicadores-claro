@@ -34,7 +34,7 @@ async function resolveUser(target){
  try{
    const cfg=window.PORTAL_CONFIG||{};
    const key=cfg.SUPABASE_PUBLISHABLE_KEY||cfg.SUPABASE_ANON_KEY;
-   const client=window.supabaseClient||window.sb||((window.supabase&&cfg.SUPABASE_URL&&key)?window.supabase.createClient(cfg.SUPABASE_URL,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null);
+   const client=window.supabaseClient||window.sb||(window.getPortalSupabase?window.getPortalSupabase():null);
    if(client?.auth?.getSession){const r=await client.auth.getSession();const u=r?.data?.session?.user;name=clean(u?.email?.split('@')[0]||name);}
  }catch(e){}
  target.textContent=(name||'usuário conectado').toUpperCase();

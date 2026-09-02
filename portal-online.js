@@ -8,18 +8,7 @@
   let timerPresenca = null;
   let timerLista = null;
 
-  function obterCliente() {
-    if (supabaseClient) return supabaseClient;
-    if (!window.supabase || !window.PORTAL_CONFIG) return null;
-    supabaseClient = window.supabase.createClient(
-      window.PORTAL_CONFIG.SUPABASE_URL,
-      window.PORTAL_CONFIG.SUPABASE_PUBLISHABLE_KEY,
-      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
-    );
-    return supabaseClient;
-  }
-
-  function instalarEstilo() {
+  function obterCliente() { if (supabaseClient) return supabaseClient; try { supabaseClient = window.getPortalSupabase(); return supabaseClient; } catch (e) { console.warn('Cliente Supabase:', e); return null; } } function instalarEstilo() {
     if (document.getElementById('portalOnlineStyle')) return;
     const style = document.createElement('style');
     style.id = 'portalOnlineStyle';
