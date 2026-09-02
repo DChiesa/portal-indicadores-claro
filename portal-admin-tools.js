@@ -3,7 +3,8 @@
 const ADMIN_IDS=['demetrius377','demetrius377@claro.com.br','demetrius377@gmail.com'];
 let sb;
 const norm=v=>String(v||'').trim().toLowerCase();
-const client=()=>{if(sb)return sb;try{sb=window.getPortalSupabase();return sb}catch(e){console.warn('Cliente Supabase:',e);return null}}; function isAdmin(email){return ADMIN_IDS.some(x=>norm(email).includes(norm(x)))}
+const client=()=>sb||(sb=window.supabase&&window.PORTAL_CONFIG?window.supabase.createClient(window.PORTAL_CONFIG.SUPABASE_URL,window.PORTAL_CONFIG.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null);
+function isAdmin(email){return ADMIN_IDS.some(x=>norm(email).includes(norm(x)))}
 async function registrar(){try{const c=client();if(!c)return;const s=(await c.auth.getSession()).data.session;if(!s)return;const page=decodeURIComponent(location.pathname.split('/').pop()||'index.html');await c.rpc('portal_registrar_acesso',{p_pagina:page,p_login:s.user.email||s.user.user_metadata?.login||'',p_user_agent:navigator.userAgent.slice(0,500)});}catch(e){console.warn('Registro de acesso:',e)}}
 async function card(){
  try{
