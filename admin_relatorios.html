@@ -1,30 +1,279 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gerenciar Relatórios</title><script src="./portal-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><style>:root{--r:#e30613;--blue:#214f79;--ink:#172033;--muted:#667085}*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f4f7fb;color:var(--ink)}.top{display:flex;gap:12px;align-items:center;background:#fff;border-bottom:1px solid #dde5ef;padding:12px 18px}.back{border:0;border-radius:11px;background:#e9edf2;padding:10px 14px;font-weight:900}.wrap{max-width:1100px;margin:20px auto;padding:0 14px}.box{background:#fff;border:1px solid #d7deea;border-radius:16px;padding:15px;margin-bottom:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-size:12px;font-weight:900;color:#26385d;display:block;margin:9px 0 6px}input,select{width:100%;padding:12px;border:1px solid #b8c6d8;border-radius:10px;background:#fff}.btn{border:0;border-radius:10px;background:var(--r);color:#fff;padding:12px 18px;font-weight:900}.list{display:grid;gap:10px}.item{display:flex;align-items:center;gap:12px;justify-content:space-between;border:1px solid #d7deea;border-radius:12px;padding:12px;background:#fbfcfe}.item small{display:block;color:#667085}.del{background:#444}.update-control{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;font-weight:800}.update-control input{width:auto}.xbtn{width:38px;height:38px;padding:0;border-radius:50%;font-size:18px}.msg{margin-top:12px;border-radius:10px;padding:12px}.ok{background:#e7f8ed;color:#075b28}.err{background:#ffe8e8;color:#9f0000}@media(max-width:760px){.row{grid-template-columns:1fr}.item{display:block}.item button{margin-top:10px}}</style>
-<style id="CLARO_VISUAL_FINAL_V2">/* CLARO_VISUAL_FINAL_V2: padrão aprovado, embutido para evitar falha de assets/cache */
-:root{--clv-h:218px;--clv-red:#d50012;--clv-dark:#950008}
-html{scroll-padding-top:var(--clv-h)}body.clv-ready{padding-top:var(--clv-h)!important}
-#clvHeader{position:fixed;top:0;left:0;right:0;z-index:2147483640;background:#c90010;color:#fff;box-shadow:0 5px 18px #0005;font-family:Segoe UI,Arial,sans-serif}
-.clv-main{height:112px;display:grid;grid-template-columns:112px minmax(0,1fr) auto;align-items:center;gap:18px;padding:9px 24px;background:linear-gradient(110deg,#970008 0%,#c80010 54%,#ed0015 100%)}
-.clv-logo{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;color:#d40012;border:1px solid #eee;box-shadow:0 4px 12px #51000766;font:700 24px/1 Arial;letter-spacing:-2px}.clv-o{position:relative}.clv-ray{position:absolute;left:14px;width:11px;height:3px;background:#d40012;border-radius:3px;transform-origin:left center}.clv-ray.r1{top:-5px;transform:rotate(-90deg)}.clv-ray.r2{top:2px;transform:rotate(-42deg)}.clv-ray.r3{top:10px}
-.clv-welcome{font-size:22px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.clv-meta{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px;font-size:11px}.clv-service{display:flex;align-items:center;gap:10px}.clv-service-text{text-align:right;font:900 27px/.9 'Arial Narrow',Arial,sans-serif}.clv-service-text small{display:block;font-size:9px;letter-spacing:5px;line-height:1.5}
-.clv-tech{position:relative;width:59px;height:63px}.clv-brain{position:absolute;left:1px;top:6px;width:32px;height:44px;background:#fff;border-radius:19px 7px 7px 17px}.clv-brain:before{content:'';position:absolute;left:-2px;top:9px;width:12px;height:13px;background:#fff;border-radius:8px}.clv-brain:after{content:'';position:absolute;left:4px;bottom:-5px;width:21px;height:11px;background:#fff;border-radius:0 0 11px 11px}.clv-gear{position:absolute;z-index:3;color:#d40012;font-style:normal;line-height:1}.clv-gear.g1{left:7px;top:15px;font-size:16px}.clv-gear.g2{left:12px;top:30px;font-size:13px}.clv-bulb{position:absolute;right:1px;top:4px;width:32px;height:47px;background:#fff;border-radius:7px 18px 15px 5px;clip-path:polygon(0 7%,72% 0,100% 17%,100% 67%,76% 81%,68% 100%,16% 100%,12% 76%,0 66%)}.clv-bi{position:absolute;z-index:4;right:5px;top:11px;width:24px;height:28px;border:2px solid #d40012;border-radius:8px 8px 3px 3px;color:#d40012;display:grid;place-items:center;font:900 11px Arial}.clv-lines{position:absolute;z-index:5;right:5px;top:43px;width:20px;height:3px;background:#d40012;border-radius:2px;box-shadow:0 5px 0 #d40012,0 10px 0 #d40012}
-.clv-filter-area{background:#fff;color:#111827;padding:9px 18px;border-bottom:1px solid #ddd;max-height:118px;overflow:auto}.clv-filter-area:empty{display:none}.clv-filter-area>.clv-filters{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;display:flex!important;flex-wrap:wrap!important;align-items:end!important;gap:8px 10px!important}.clv-filter-area label{display:block!important;color:#8c0009!important;font-size:10px!important;font-weight:800!important;margin:0 0 3px!important}.clv-filter-area select,.clv-filter-area input[type=date],.clv-filter-area input[type=text],.clv-filter-area input[type=search]{height:34px!important;min-width:115px!important;max-width:205px!important;color:#222!important;background:#fff!important;border:1px solid #cbd2dc!important;border-radius:5px!important;padding:4px 8px!important}.clv-filter-area button,.clv-filter-area .btn{height:34px!important;min-height:34px!important;border-radius:7px!important;padding:0 10px!important;font-size:11px!important}.clv-filter-area input[type=file]{max-width:210px!important;font-size:10px!important}
-.clv-titlebar{height:55px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:7px 24px;background:linear-gradient(90deg,#940008,#c90010);border-top:1px solid #ff6570}.clv-back,.clv-new{height:34px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#810008;font-weight:800;padding:0 13px;cursor:pointer}.clv-new{font-size:10px;color:#555;opacity:.92}.clv-copy{display:flex;align-items:center;gap:17px;min-width:0}.clv-title{font-size:23px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.clv-sub{font-size:13px;font-weight:700;border-left:1px solid #ffffff66;padding-left:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.clv-old-head{display:none!important}.clv-hide-supa{display:none!important}
-@media(max-width:850px){.clv-main{height:96px;grid-template-columns:74px 1fr;padding:7px 10px;gap:9px}.clv-logo{width:68px;height:68px;font-size:20px}.clv-service{display:none}.clv-welcome{font-size:14px}.clv-meta{font-size:9px;gap:8px;margin-top:8px}.clv-filter-area{padding:7px;max-height:115px}.clv-titlebar{height:47px;padding:6px 9px;gap:8px}.clv-title{font-size:16px}.clv-sub{display:none}.clv-back,.clv-new{font-size:9px;padding:0 7px}}
-</style>
-</head><body><div class="top"><button class="back" onclick="location.href='index.html'">← Voltar ao portal</button><h2>Gerenciar Relatórios</h2></div><main class="wrap"><div class="box"><p><b>Somente Demétrius pode usar esta página.</b></p><div class="row"><div><label>Nome do relatório</label><input id="nome" placeholder="Ex.: Novo Painel"></div><div><label>Categoria</label><select id="categoria"><option value="manutencao">Manutenção</option><option value="instalacao">Instalação</option><option value="rede">Rede</option><option value="backbone">Backbone</option><option value="tecnico">Técnico</option><option value="administracao">Administração</option></select></div></div><label>Arquivo HTML</label><input id="file" type="file" accept=".html"><label class="update-control"><input id="permiteAtualizacao" type="checkbox"> Este relatório usa base no Supabase e deve aparecer na Central de Atualização</label><button class="btn" onclick="enviar()">Enviar novo relatório</button><div id="msg"></div></div><div class="box"><h3>Relatórios cadastrados</h3><div id="list" class="list">Carregando...</div></div></main><script>'use strict';const C=window.PORTAL_CONFIG,$=id=>document.getElementById(id);let sb=null;function client(){if(!sb)sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return sb}function msg(t,ok=true){$('msg').className='msg '+(ok?'ok':'err');$('msg').textContent=t}function slug(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')}async function checkAdmin(){const s=(await client().auth.getSession()).data.session;if(!s){location.href='index.html';return false}if(!String(s.user.email||'').toLowerCase().includes('demetrius377')){document.body.innerHTML='<div style="padding:30px;font-family:Segoe UI">Somente Demétrius pode usar esta página.</div>';return false}return true}async function carregar(){if(!await checkAdmin())return;const r=await client().rpc('portal_admin_list_reports');if(r.error){$('list').textContent='Erro: '+r.error.message;return}const ctl=await client().rpc('portal_admin_list_report_controls');const mapa=new Map((ctl.data||[]).map(x=>[String(x.report_key),x]));const rows=(r.data||[]).filter(x=>x.ativo!==false);$('list').innerHTML=rows.length?rows.map(x=>{const c=mapa.get(String(x.codigo))||{};return `<div class="item"><div><b>${x.nome}</b><small>${x.categoria||''} • ${x.arquivo||''}</small><label class="update-control"><input type="checkbox" ${c.allow_update?'checked':''} onchange="definirAtualizacao('${x.codigo}',this.checked)"> Exibir na Central de Atualização</label></div><button class="btn del xbtn" title="Retirar este relatório" aria-label="Retirar este relatório" onclick="remover('${x.codigo}')">×</button></div>`}).join(''):'Nenhum relatório cadastrado.'}async function enviar(){const f=$('file').files[0];if(!f){msg('Selecione um arquivo HTML.',false);return}if(!/\.html?$/i.test(f.name)){msg('Impossível carregar arquivo, verifique nome ou formato.',false);return}const nome=$('nome').value.trim()||f.name.replace(/\.html?$/i,''),codigo=slug(nome),githubPath=codigo+'.html',storagePath='reports/'+githubPath;if(!codigo){msg('Informe um nome válido.',false);return}msg('Validando e enviando...');try{const text=await f.text();if(!/<html/i.test(text)||!/<body/i.test(text)||!/<\/html>/i.test(text))throw Error('HTML incompleto ou inválido.');const blob=new Blob([text],{type:'text/html;charset=utf-8'});const up=await client().storage.from(C.REPORTS_BUCKET||'portal-html').upload(storagePath,blob,{upsert:true,contentType:'text/html;charset=utf-8',cacheControl:'60'});if(up.error)throw Error('Supabase: '+up.error.message);const sync=await client().functions.invoke(C.GITHUB_SYNC_FUNCTION||'github-report-sync',{body:{storagePath,githubPath}});if(sync.error)throw Error('GitHub: '+sync.error.message);if(!sync.data||!sync.data.ok)throw Error('GitHub: '+((sync.data&&sync.data.error)||'sincronização não confirmada'));const r=await client().rpc('portal_admin_save_report',{p_codigo:codigo,p_nome:nome,p_categoria:$('categoria').value,p_arquivo:githubPath,p_storage_path:storagePath});if(r.error)throw Error('Cadastro: '+r.error.message);const c=await client().rpc('portal_admin_set_report_control',{p_report_key:codigo,p_visible:true,p_allow_update:$('permiteAtualizacao').checked});if(c.error)throw Error('Controle: '+c.error.message);msg('Concluído. Supabase: '+storagePath+' | GitHub: '+githubPath);$('nome').value='';$('file').value='';$('permiteAtualizacao').checked=false;await carregar()}catch(e){msg(e.message,false)}}async function definirAtualizacao(codigo,valor){const r=await client().rpc('portal_admin_set_report_control',{p_report_key:codigo,p_visible:true,p_allow_update:!!valor});if(r.error){msg('Erro ao alterar atualização: '+r.error.message,false);await carregar();return}msg(valor?'Relatório liberado para atualização.':'Relatório retirado da Central de Atualização.')}async function remover(codigo){if(!confirm('Retirar este relatório do portal, do gerenciamento e da Central de Atualização?'))return;const c=await client().rpc('portal_admin_set_report_control',{p_report_key:codigo,p_visible:false,p_allow_update:false});if(c.error){msg('Erro ao retirar da Central: '+c.error.message,false);return}const r=await client().rpc('portal_admin_disable_report',{p_codigo:codigo});if(r.error){msg('Erro ao retirar: '+r.error.message,false);return}msg('Relatório retirado do portal.');await carregar()}carregar();</script><script id="CLARO_VISUAL_FINAL_V2_JS">/* CLARO_VISUAL_FINAL_V2: move os elementos originais; não clona IDs nem eventos */
-(function(){'use strict';
-var pg=decodeURIComponent(location.pathname.split('/').pop()||'').toLowerCase();if(!pg||pg==='index.html'||pg==='visualizador_relatorio.html')return;
-var filters={'analise_qualinet.html':['.toolbar'],'at1_personas.html':['.filters'],'at5_total.html':['section.filters'],'backbone_analytics.html':['section.filters'],'dashboard_at1_historico.html':['section.toolbar'],'dashboard_at5_total.html':['section.filters'],'dashboard_log_manutencao.html':['section.filters'],'dashboard_rai_cluster.html':['section.filters'],'rai_cluster.html':['section.filters'],'dashboard_tnps_claro.html':['section.filters'],'estudo_codigos_cluster.html':['section.filters'],'painel_certidao_atendimento.html':['.controls'],'painel_nr35_visao_tecnico.html':['.controls'],'painel_quebra_total.html':['.controls'],'painel_recomendacoes.html':['.filterbar'],'projeto_gpon_cluster.html':['.controls','.filters'],'quebra_de_agenda.html':['section.filters'],'quebra_migracao.html':['.filters'],'relatorio_flag_24h_graf_diario.html':['.filters'],'relatorio_manifestos_rrs.html':['.filters'],'tecnico_certificado.html':['section.filters']};
-var oldheads={'at1_personas.html':['header','.topbar'],'at5_total.html':['header.top'],'backbone_analytics.html':['header.header'],'dashboard_at1_historico.html':['header.header'],'dashboard_at5_total.html':['header.top'],'dashboard_log_manutencao.html':['header.top'],'dashboard_rai_cluster.html':['header.top'],'rai_cluster.html':['header.top'],'dashboard_tnps_claro.html':['header.topbar'],'estudo_codigos_cluster.html':['header','.masthead'],'painel_certidao_atendimento.html':['header.hero'],'painel_nr35_visao_tecnico.html':['header.hero'],'painel_quebra_total.html':['header.hero'],'painel_recomendacoes.html':['section.hero'],'quebra_de_agenda.html':['header.top'],'quebra_migracao.html':['.top'],'relatorio_flag_24h_graf_diario.html':['header.header'],'relatorio_manifestos_rrs.html':['header.top'],'tecnico_certificado.html':['section.hero']};
-function t(e){return(e&&e.textContent||'').replace(/\s+/g,' ').trim()}function one(a){for(var i=0;i<(a||[]).length;i++){var e=document.querySelector(a[i]);if(e)return e}return null}
-function title(){var e=document.querySelector('h1,h2,.title,.brand');return(t(e)||document.title||'Relatório').replace(/^CLARO\s*\|?\s*/i,'').trim()}function sub(){var a=document.querySelectorAll('h1+p,h2+p,.sub,.subtitle');for(var i=0;i<a.length;i++){var x=t(a[i]);if(x&&x.length<130)return x}return''}
-function back(){try{if(parent!==window&&parent.document){var b=parent.document.getElementById('back');if(b){b.click();return}}}catch(e){}location.href='index.html'}
-function build(){if(document.getElementById('clvHeader'))return;var h=document.createElement('header');h.id='clvHeader';h.innerHTML='<div class="clv-main"><div class="clv-logo">Clar<span class="clv-o">o<i class="clv-ray r1"></i><i class="clv-ray r2"></i><i class="clv-ray r3"></i></span></div><div><div class="clv-welcome">Bem-vindo, <b>DEMETRIUS ROGINA CHIESA FREITAS</b></div><div class="clv-meta"><span>● Login: <b>demetrius.chiesa</b></span><span>▣ Atual até: <b>06/08/2026</b></span><span>◇ Certificado de propriedade: <b>Demétrius Chiesa</b></span></div></div><div class="clv-service"><div class="clv-service-text"><small>SERVIÇOS</small>TÉCNICOS</div><div class="clv-tech"><div class="clv-brain"></div><i class="clv-gear g1">⚙</i><i class="clv-gear g2">⚙</i><div class="clv-bulb"></div><span class="clv-bi">BI</span><span class="clv-lines"></span></div></div></div><div id="clvFilters" class="clv-filter-area"></div><div class="clv-titlebar"><button class="clv-back" type="button">← Voltar ao portal</button><div class="clv-copy"><span class="clv-title"></span><span class="clv-sub"></span></div><button class="clv-new" type="button">↗ Abrir em nova aba</button></div>';h.querySelector('.clv-title').textContent=title();h.querySelector('.clv-sub').textContent=sub();h.querySelector('.clv-back').onclick=back;h.querySelector('.clv-new').onclick=function(){window.open(location.href,'_blank','noopener')};document.body.prepend(h);
-var f=one(filters[pg]);if(f){f.classList.add('clv-filters');h.querySelector('#clvFilters').appendChild(f)}
-(oldheads[pg]||[]).forEach(function(s){document.querySelectorAll(s).forEach(function(e){if(!e.closest('#clvHeader'))e.classList.add('clv-old-head')})});
-Array.from(document.querySelectorAll('button,label')).forEach(function(e){var x=t(e).toLowerCase();if(/^(atualizar supabase|atualizar pelo supabase|carregar base|atualizar lista|base disponível no supabase)$/.test(x))e.classList.add('clv-hide-supa')});
-document.body.classList.add('clv-ready');function size(){document.documentElement.style.setProperty('--clv-h',h.offsetHeight+'px')}requestAnimationFrame(size);setTimeout(size,200);window.addEventListener('resize',size)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();})();
-</script>
-</body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Gerenciar Relatórios</title>
+
+  <script src="./portal-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style>
+    :root {
+      --r: #e30613;
+      --blue: #214f79;
+      --ink: #172033;
+      --muted: #667085;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Segoe UI, Arial, sans-serif;
+      background: #f4f7fb;
+      color: var(--ink);
+    }
+
+    .top {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: #fff;
+      border-bottom: 1px solid #dde5ef;
+      padding: 12px 18px;
+    }
+
+    .back {
+      border: 0;
+      border-radius: 11px;
+      background: #e9edf2;
+      padding: 10px 14px;
+      font-weight: 900;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 0 14px;
+    }
+
+    .box {
+      background: #fff;
+      border: 1px solid #d7deea;
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 900;
+      color: #26385d;
+      display: block;
+      margin: 9px 0 6px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #b8c6d8;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      background: var(--r);
+      color: #fff;
+      padding: 12px 18px;
+      font-weight: 900;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+      border: 1px solid #d7deea;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .item small {
+      display: block;
+      color: #667085;
+    }
+
+    .del {
+      background: #444;
+    }
+
+    .update-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .update-control input {
+      width: auto;
+    }
+
+    .xbtn {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 18px;
+    }
+
+    .msg {
+      margin-top: 12px;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .ok {
+      background: #e7f8ed;
+      color: #075b28;
+    }
+
+    .err {
+      background: #ffe8e8;
+      color: #9f0000;
+    }
+
+    @media (max-width: 760px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .item {
+        display: block;
+      }
+
+      .item button {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <h2>Gerenciar Relatórios</h2>
+  </div>
+
+  <main class="wrap">
+    <div class="box">
+      <p>
+        <b>Somente Demétrius pode usar esta página.</b>
+      </p>
+
+      <div class="row">
+        <div>
+          <label for="nome">Nome do relatório</label>
+          <input
+            id="nome"
+            placeholder="Ex.: Novo Painel"
+          >
+        </div>
+
+        <div>
+          <label for="categoria">Categoria</label>
+
+          <select id="categoria">
+            <option value="manutencao">Manutenção</option>
+            <option value="instalacao">Instalação</option>
+            <option value="rede">Rede</option>
+            <option value="backbone">Backbone</option>
+            <option value="tecnico">Técnico</option>
+            <option value="administracao">Administração</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="file">Arquivo HTML</label>
+
+      <input
+        id="file"
+        type="file"
+        accept=".html"
+      >
+
+      <label class="update-control">
+        <input
+          id="permiteAtualizacao"
+          type="checkbox"
+        >
+
+        Este relatório usa base no Supabase e deve aparecer na Central de Atualização
+      </label>
+
+      <button
+        class="btn"
+        type="button"
+        onclick="enviar()"
+      >
+        Enviar novo relatório
+      </button>
+
+      <div id="msg"></div>
+    </div>
+
+    <div class="box">
+      <h3>Relatórios cadastrados</h3>
+
+      <div id="list" class="list">
+        Carregando...
+      </div>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+
+    const C = window.PORTAL_CONFIG;
+    const $ = id => document.getElementById(id);
+
+    let sb = null;
+
+    function client() {
+      if (!sb) {
+        sb = supabase.createClient(
+          C.SUPABASE_URL,
+          C.SUPABASE_PUBLISHABLE_KEY,
+          {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true
+            }
+          }
+        );
+      }
+
+      return sb;
+    }
+
+    function msg(t, ok = true) {
+      $('msg').className = 'msg ' + (ok ? 'ok' : 'err');
+      $('msg').textContent = t;
+    }
+
+    function slug(s) {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+     
