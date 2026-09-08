@@ -52,7 +52,7 @@ const CFG={
  anonKey:PORTAL_CFG.SUPABASE_PUBLISHABLE_KEY||'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
  bucket:PORTAL_CFG.BUCKET||'bases-tecnico',
  current:PORTAL_CFG.FILES?.['nr35_dash.html']||'atual/NR35_Dash.xlsx',
- historyPrefix:'historico/nr35_dash/',portalUrl:'index.html'
+ historyPrefix:'historico/',portalUrl:'index.html'
 };
 let sb=null,portalSessionReady=null;
 function supa(){if(!sb)sb=supabase.createClient(CFG.supabaseUrl,CFG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});return sb}
@@ -78,9 +78,17 @@ function mesKey(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStar
 function mapRow(r){const d=parseData(r.DATA);const eleg=upper(r.ELEGIVEL)==='SIM';const sub=norm(r.SUBIU);return{raw:r,dataObj:d,data:d?d.toLocaleDateString('pt-BR'):'',mes:mesKey(d),cidade:norm(r.CIDADE)||'SEM CIDADE',grupo:norm(r.GRUPO)||'SEM GRUPO',tecnico:norm(r.LOGIN_FIELD)||'SEM LOGIN',tipo:norm(r.TIPO_ORD_SRV)||'SEM TIPO',contrato:norm(r.CONTRATO),codBaixa:norm(r.COD_BAIXA),un:norm(r.UN)||'SEM UN',node:norm(r.UN)||'SEM UN',subiu:sub,elegivel:eleg,status:eleg?(sub?'OK':'NOK'):'DESCONSIDERADO'}}
 async function listarHistorico(){try{
  await solicitarSessaoPortal();
- const {data:list,error}=await supa().storage.from(CFG.bucket).list(CFG.historyPrefix,{limit:100,sortBy:{column:'name',order:'desc'}});
- if(error)throw error;
- for(const x of (list||[]).filter(x=>/nr35_dash_\d{4}-\d{2}\.(xlsx|xls|csv)$/i.test(x.name))){const path=CFG.historyPrefix+x.name;const o=document.createElement('option');o.value=path;o.textContent='Histórico '+x.name.match(/(\d{4}-\d{2})/)[1];$('baseSelector').appendChild(o)}
+ const pageSize=1000,arquivos=[];let offset=0;
+ while(true){
+  const {data:list,error}=await supa().storage.from(CFG.bucket).list(CFG.historyPrefix,{limit:pageSize,offset,sortBy:{column:'name',order:'desc'}});
+  if(error)throw error;
+  const pagina=list||[];arquivos.push(...pagina);
+  if(pagina.length<pageSize)break;
+  offset+=pageSize;
+ }
+ [...$('baseSelector').options].filter(o=>o.value.startsWith(CFG.historyPrefix)).forEach(o=>o.remove());
+ const historicos=arquivos.filter(x=>/nr35_dash_\d{4}-\d{2}\.(xlsx|xls|csv)$/i.test(x.name)).sort((a,b)=>b.name.localeCompare(a.name,'pt-BR',{numeric:true}));
+ for(const x of historicos){const path=CFG.historyPrefix+x.name;const mes=x.name.match(/(\d{4}-\d{2})/)[1];const [ano,numMes]=mes.split('-');const o=document.createElement('option');o.value=path;o.textContent=`Histórico ${numMes}/${ano}`;$('baseSelector').appendChild(o)}
  }catch(e){console.warn('Histórico indisponível',e)}}
 async function carregarPath(path){showLoad(true);try{
  setStatus(false,'Autenticando no portal...','');
