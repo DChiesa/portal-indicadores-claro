@@ -104,9 +104,24 @@ async function carregarPath(path){showLoad(true);try{
 async function lerBuffer(buf,nome){const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:null,raw:true});dados=rows.map(mapRow);popularFiltros();aplicar();$('baseInfo').textContent=` — ${nome} • ${dados.length.toLocaleString('pt-BR')} linhas`}
 function selected(id){return [...$(id).selectedOptions].map(o=>o.value)}
 function preencher(id,vals,labelFn=v=>v){const prev=new Set(selected(id));$(id).innerHTML='';[...new Set(vals.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true})).forEach(v=>{const o=new Option(labelFn(v),v);o.selected=prev.has(v);$(id).add(o)})}
-function popularFiltros(){preencher('fMes',dados.map(x=>x.mes),v=>{const [a,m]=v.split('-');return `${m}/${a}`});preencher('fCidade',dados.map(x=>x.cidade));preencher('fGrupo',dados.map(x=>x.grupo));preencher('fUN',dados.map(x=>x.un));preencher('fTecnico',dados.map(x=>x.tecnico));preencher('fTipo',dados.map(x=>x.tipo))}
+const FILTROS=[
+ {id:'fMes',key:'mes',label:v=>{const [a,m]=v.split('-');return `${m}/${a}`}},
+ {id:'fCidade',key:'cidade'},{id:'fGrupo',key:'grupo'},{id:'fUN',key:'un'},
+ {id:'fTecnico',key:'tecnico'},{id:'fTipo',key:'tipo'}
+];
 function passa(x,id,key){const a=selected(id);return !a.length||a.includes(x[key])}
-function aplicar(){filtrados=dados.filter(x=>passa(x,'fMes','mes')&&passa(x,'fCidade','cidade')&&passa(x,'fGrupo','grupo')&&passa(x,'fUN','un')&&passa(x,'fTecnico','tecnico')&&passa(x,'fTipo','tipo'));render();$('filterCount').textContent=`${filtrados.length.toLocaleString('pt-BR')} linhas no filtro`}
+function atendeOutrosFiltros(x,idIgnorado){return FILTROS.every(f=>f.id===idIgnorado||passa(x,f.id,f.key))}
+function atualizarFiltrosEncadeados(){
+ // Recalcula cada seletor usando todos os demais filtros. Repete até eliminar seleções incompatíveis sem depender da ordem dos campos.
+ for(let ciclo=0;ciclo<FILTROS.length;ciclo++){
+  const antes=FILTROS.map(f=>selected(f.id).join('\u0001')).join('\u0002');
+  for(const f of FILTROS){const base=dados.filter(x=>atendeOutrosFiltros(x,f.id));preencher(f.id,base.map(x=>x[f.key]),f.label||undefined)}
+  const depois=FILTROS.map(f=>selected(f.id).join('\u0001')).join('\u0002');
+  if(antes===depois)break;
+ }
+}
+function popularFiltros(){atualizarFiltrosEncadeados()}
+function aplicar(){atualizarFiltrosEncadeados();filtrados=dados.filter(x=>FILTROS.every(f=>passa(x,f.id,f.key)));render();$('filterCount').textContent=`${filtrados.length.toLocaleString('pt-BR')} linhas no filtro`}
 function metrics(arr){const e=arr.filter(x=>x.elegivel),ok=e.filter(x=>x.status==='OK').length;return{total:e.length,ok,nok:e.length-ok,pct:e.length?ok/e.length*100:0}}
 function render(){const m=metrics(filtrados);$('kEleg').textContent=m.total.toLocaleString('pt-BR');$('kOk').textContent=m.ok.toLocaleString('pt-BR');$('kNok').textContent=m.nok.toLocaleString('pt-BR');$('kPct').textContent=m.pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';$('kPct').style.color=m.pct>=META_ADERENCIA?'var(--ok)':'var(--claro)';$('kEscopo').textContent=`${new Set(filtrados.map(x=>x.tecnico)).size} / ${new Set(filtrados.map(x=>x.cidade)).size}`;renderCharts();renderInsights();renderTable()}
 function agg(arr,key){const z={};for(const x of arr){if(!x.elegivel)continue;(z[x[key]]??={total:0,ok:0});z[x[key]].total++;if(x.status==='OK')z[x[key]].ok++}return Object.entries(z).map(([name,v])=>({name,...v,pct:v.total?v.ok/v.total*100:0}))}
