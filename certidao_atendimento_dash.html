@@ -20,8 +20,8 @@ async function read(buf,src){let w=XLSX.read(buf,{type:'array',cellDates:true}),
     if(batch.length<limit)break;
     offset+=limit;
   }
-  all.filter(x=>/^certidao_atendimento(?:_dash)?_\d{4}-\d{2}(?:[-_].*)?\.xlsx$/i.test(x.name)).forEach(x=>{
-    let m=x.name.match(/(\d{4})-(\d{2})/),label=m?m[2]+'/'+m[1]:x.name;
+  all.filter(x=>/^certidao_atendimento(?:_dash)?_\d{4}[-_]\d{2}(?:[-_].*)?\.xlsx$/i.test(x.name)).forEach(x=>{
+    let m=x.name.match(/(\d{4})[-_](\d{2})/),label=m?m[2]+'/'+m[1]:x.name;
     out.push({label,path:CFG.hist+'/'+x.name});
   });
   return out;
