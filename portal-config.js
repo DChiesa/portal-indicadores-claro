@@ -5,6 +5,7 @@ window.PORTAL_CONFIG = Object.freeze({
   SUPABASE_ANON_KEY: 'sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL',
   BUCKET: 'bases-tecnico',
   FILES: Object.freeze({
-    'sla_pme_4h.html': 'atual/sla_pme_4h.xlsx'
+    'sla_pme_4h.html': 'atual/sla_pme_4h.xlsx',
+    'estudo_codigos_cluster.html': 'atual/estudo codigo.xlsx'
   })
 });
