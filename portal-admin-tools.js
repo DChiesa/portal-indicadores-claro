@@ -25,6 +25,20 @@ async function card(){
   const txt=header.textContent||'';header.textContent=txt.replace(/(Administra[cç][aã]o)\s+\d+\s+m[oó]dulos/i,'$1  5 módulos');
  }catch(e){console.warn('Card de acessos:',e)}
 }
-async function start(){await registrar();await card()}
+async function aguardarCard(){
+  await card();
+  if(document.getElementById('adminAccessLogCard'))return;
+
+  const observer=new MutationObserver(async()=>{
+    await card();
+    if(document.getElementById('adminAccessLogCard'))observer.disconnect();
+  });
+
+  observer.observe(document.getElementById('categories')||document.body,{
+    childList:true,
+    subtree:true
+  });
+}
+async function start(){await registrar();await aguardarCard()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
