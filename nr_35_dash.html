@@ -68,7 +68,7 @@ function solicitarSessaoPortal(timeout=3500){
  });return portalSessionReady
 }
 const META_ADERENCIA=95;
-let dados=[],filtrados=[],charts={},sort={key:'data',asc:false},onlyNok=false;
+let dados=[],filtrados=[],numeros=[],charts={},sort={key:'data',asc:false},onlyNok=false;
 const $=id=>document.getElementById(id), norm=v=>String(v??'').trim(), upper=v=>norm(v).toLocaleUpperCase('pt-BR');
 function voltarPortal(){if(window.parent!==window){try{window.parent.location.href=CFG.portalUrl;return}catch(e){}}location.href=CFG.portalUrl}
 function showLoad(on){$('loading').classList.toggle('on',on)}
@@ -101,7 +101,7 @@ async function carregarPath(path){showLoad(true);try{
  await lerBuffer(await blob.arrayBuffer(),path);
  setStatus(true,'Base carregada',` — ${path}`);
  }catch(e){setStatus(false,'Não foi possível abrir a base no Supabase',` — ${e.message||e}`);console.error('NR35 Supabase:',e)}finally{showLoad(false)}}
-async function lerBuffer(buf,nome){const wb=XLSX.read(buf,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:null,raw:true});dados=rows.map(mapRow);popularFiltros();aplicar();$('baseInfo').textContent=` — ${nome} • ${dados.length.toLocaleString('pt-BR')} linhas`}
+async function lerBuffer(buf,nome){const wb=XLSX.read(buf,{type:'array',cellDates:true});const wsTabela=wb.Sheets['tabela']||wb.Sheets[wb.SheetNames[0]];const wsNumeros=wb.Sheets['numeros'];const rows=XLSX.utils.sheet_to_json(wsTabela,{defval:null,raw:true});dados=rows.map(mapRow);numeros=wsNumeros?XLSX.utils.sheet_to_json(wsNumeros,{defval:null,raw:true}).map(r=>({tecnico:norm(r.LOGIN),cidade:norm(r.CIDADE)||'SEM CIDADE',un:norm(r.UN)||'SEM UN',eleg:Number(r.OSS_ELEGIVEIS)||0,subiu:Number(r.ELEGIVEIS_SUBIU)||0})):[];popularFiltros();aplicar();$('baseInfo').textContent=` — ${nome} • ${dados.length.toLocaleString('pt-BR')} linhas`}
 function selected(id){return [...$(id).selectedOptions].map(o=>o.value)}
 function preencher(id,vals,labelFn=v=>v){const prev=new Set(selected(id));$(id).innerHTML='';[...new Set(vals.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true})).forEach(v=>{const o=new Option(labelFn(v),v);o.selected=prev.has(v);$(id).add(o)})}
 const FILTROS=[
@@ -122,9 +122,9 @@ function atualizarFiltrosEncadeados(){
 }
 function popularFiltros(){atualizarFiltrosEncadeados()}
 function aplicar(){atualizarFiltrosEncadeados();filtrados=dados.filter(x=>FILTROS.every(f=>passa(x,f.id,f.key)));render();$('filterCount').textContent=`${filtrados.length.toLocaleString('pt-BR')} linhas no filtro`}
-function metrics(arr){const e=arr.filter(x=>x.elegivel),ok=e.filter(x=>x.status==='OK').length;return{total:e.length,ok,nok:e.length-ok,pct:e.length?ok/e.length*100:0}}
+function metrics(arr){const tecs=new Set(arr.map(x=>x.tecnico));const cidadesSel=selected('fCidade');let base=numeros.filter(n=>tecs.has(n.tecnico));if(cidadesSel.length)base=base.filter(n=>cidadesSel.includes(n.cidade));const total=base.reduce((a,b)=>a+b.eleg,0);const ok=base.reduce((a,b)=>a+b.subiu,0);return{total,ok,nok:Math.max(total-ok,0),pct:total?ok/total*100:0}}
 function render(){const m=metrics(filtrados);$('kEleg').textContent=m.total.toLocaleString('pt-BR');$('kOk').textContent=m.ok.toLocaleString('pt-BR');$('kNok').textContent=m.nok.toLocaleString('pt-BR');$('kPct').textContent=m.pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';$('kPct').style.color=m.pct>=META_ADERENCIA?'var(--ok)':'var(--claro)';$('kEscopo').textContent=`${new Set(filtrados.map(x=>x.tecnico)).size} / ${new Set(filtrados.map(x=>x.cidade)).size}`;renderCharts();renderInsights();renderTable()}
-function agg(arr,key){const z={};for(const x of arr){if(!x.elegivel)continue;(z[x[key]]??={total:0,ok:0});z[x[key]].total++;if(x.status==='OK')z[x[key]].ok++}return Object.entries(z).map(([name,v])=>({name,...v,pct:v.total?v.ok/v.total*100:0}))}
+function agg(arr,key){const z={}; if(key==='tecnico'||key==='cidade'){const tecs=new Set(arr.map(x=>x.tecnico));let base=numeros.filter(n=>tecs.has(n.tecnico));for(const n of base){const grp=key==='tecnico'?n.tecnico:n.cidade;(z[grp]??={total:0,ok:0});z[grp].total+=n.eleg;z[grp].ok+=n.subiu;}} else {for(const x of arr){if(!x.elegivel)continue;(z[x[key]]??={total:0,ok:0});z[x[key]].total++;if(x.status==='OK')z[x[key]].ok++;}} return Object.entries(z).map(([name,v])=>({name,...v,pct:v.total?v.ok/v.total*100:0,nok:v.total-v.ok}))}
 const labelPlugin={id:'labelsNR35',afterDatasetsDraw(chart){
  const metaData=chart.options.plugins.nr35Data||[],horizontal=chart.options.indexAxis==='y',isDaily=chart.canvas.id==='chDia';
  const {ctx,chartArea}=chart;ctx.save();
