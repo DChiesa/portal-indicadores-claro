@@ -66,6 +66,35 @@ function parseDate(v){
  if((m=up(s).match(/^(\d{1,2})[-\s]([A-ZÇ]+)(?:[-\s](\d{4}))?/))){let mo=meses[m[2]];if(mo){let y=m[3]||new Date().getFullYear();return`${y}-${String(mo).padStart(2,'0')}-${m[1].padStart(2,'0')}`}}
  let d=new Date(s);return isNaN(d)?'':`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
+// ALTERACAO v2: usa o mes/ano do arquivo historico apenas para resolver datas ambiguas e fechar o periodo completo.
+function historyPeriod(fileName){
+ let m=String(fileName||'').match(/^flag_24h_(\d{4})[-_.](0?[1-9]|1[0-2])\.xlsx$/i);
+ if(!m)return null;
+ let year=+m[1],month=+m[2],lastDay=new Date(year,month,0).getDate();
+ return{year,month,start:`${year}-${String(month).padStart(2,'0')}-01`,end:`${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`}
+}
+function parseDateForPeriod(v,period){
+ if(!period)return parseDate(v);
+ if(v instanceof Date&&!isNaN(v))return parseDate(v);
+ if(typeof v==='number')return parseDate(v);
+ let s=String(v??'').trim(),m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+ if(m){
+  let a=+m[1],b=+m[2],y=+m[3],candidates=[];
+  if(a>=1&&a<=31&&b>=1&&b<=12)candidates.push({day:a,month:b});
+  if(b>=1&&b<=31&&a>=1&&a<=12)candidates.push({day:b,month:a});
+  let chosen=candidates.find(c=>c.month===period.month&&y===period.year);
+  if(chosen&&chosen.day<=new Date(y,chosen.month,0).getDate())return`${y}-${String(chosen.month).padStart(2,'0')}-${String(chosen.day).padStart(2,'0')}`;
+ }
+ return parseDate(v)
+}
+function selectedPeriodMonthInfo(rows){
+ let ini=$('startDate').value,fim=$('endDate').value;
+ if(/^\d{4}-\d{2}-\d{2}$/.test(ini)&&fim.slice(0,7)===ini.slice(0,7)){
+  let year=+ini.slice(0,4),month=+ini.slice(5,7),days=new Date(year,month,0).getDate();
+  return{year,month,days,labels:Array.from({length:days},(_,i)=>`${String(i+1).padStart(2,'0')}/${String(month).padStart(2,'0')}`),keys:Array.from({length:days},(_,i)=>`${year}-${String(month).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`)}
+ }
+ return monthInfo(rows)
+}
 function val(row,names){let keys=Object.keys(row);for(let n of names){let k=keys.find(x=>up(x)===up(n));if(k&&row[k]!==undefined&&row[k]!==null&&row[k]!=='')return row[k]}return''}function normStatus(v,row){let s=up(v),sit=up(val(row,['SITUAÇÃO','SITUACAO'])),conv=up(val(row,['CONVENIENCIA_AUTO','CONVENIENCIA','CONVENIÊNCIA']));if(s.includes('EXPURG'))return'EXPURGADA';if(conv==='SIM')return'DENTRO 24H';if(sit==='OK')return'DENTRO 24H';if(sit==='NOK')return'FORA 24H';if(s.includes('DENTRO'))return'DENTRO 24H';if(s.includes('FORA'))return'FORA 24H';return'EXPURGADA'}
 function normRow(row){let sig=up(val(row,['SIGLA'])),statusIndicador=val(row,['STATUS_INDICADOR']);let cidade=String(val(row,['NM_MUNICIPIO_BI','Cidade','CIDADE','REGIAO','REGIÃO'])).replace(/^AREA\s+/i,'').trim();cidade=up(cidade||CITY[sig]||sig||'NÃO INFORMADO');let formatoNovo=String(statusIndicador??'').trim()!=='';let statusBase=formatoNovo?'MANUTENCAO':up(val(row,['STATUS'])),fechamento=formatoNovo?'EXECUTADO':up(val(row,['FECHAMENTO'])),convenienciaAuto=up(val(row,['CONVENIENCIA_AUTO']));return{data:parseDate(val(row,['DT_AGENDA','DIA']))||parseDate(val(row,['DT_BAIXA','Data','DATA','DT_ATEND'])),cidade,sigla:sig,statusBase,fechamento,convenienciaAuto,tecnico:String(val(row,['NM_TECNICO','Técnico','TECNICO','EXEC_EQUIPE'])).trim()||'NÃO INFORMADO',codigo:String(val(row,['CD_BAIXA_ORDEM_SERVICO','COD_BAIXA','Código','CODIGO','COD'])).trim().replace(/\.0$/,'')||'N/I',node:String(val(row,['CD_NODE','COD_NODE','Node','NODE'])).trim()||'N/I',status:normStatus(formatoNovo?statusIndicador:val(row,['expurgo','EXPURGO']),row)}}
 function monthInfo(rows){let ds=rows.map(r=>r.data).filter(Boolean).sort(),base=ds.at(-1)||new Date().toISOString().slice(0,10),d=new Date(base+'T00:00:00'),year=d.getFullYear(),month=d.getMonth()+1,days=new Date(year,month,0).getDate();return{year,month,days,labels:Array.from({length:days},(_,i)=>`${String(i+1).padStart(2,'0')}/${String(month).padStart(2,'0')}`),keys:Array.from({length:days},(_,i)=>`${year}-${String(month).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`)}}
@@ -77,7 +106,7 @@ const labelBox={borderRadius:4,padding:4,backgroundColor:'rgba(255,255,255,.92)'
 function kpis(rows){let m=metrics(rows),cs=selected('cityFilter');$('kpiProjection').textContent=pct2(m.proj);$('kpiInside').textContent=fmt(m.i);$('kpiOutside').textContent=fmt(m.o);$('kpiCity').textContent=cs.length===1?cs[0]:'GERAL';$('kpiMeta').textContent=pct2(META);$('kpiProjectionCard').className='kpi '+(m.proj>=META?'ok':'');$('targetBadge').className='badge '+(m.ach>=META?'ok':'')}
 function daily(rows){
 destroy('daily');
-let mi=monthInfo(rawData),g=group(rows.filter(r=>r.data),r=>r.data),
+let mi=selectedPeriodMonthInfo(rawData),g=group(rows.filter(r=>r.data),r=>r.data),
     i=mi.keys.map(d=>(g[d]||[]).filter(inS).length),
     o=mi.keys.map(d=>(g[d]||[]).filter(outS).length),
     e=mi.keys.map(d=>(g[d]||[]).filter(expS).length),
@@ -121,7 +150,7 @@ function pill(){let el=$('cityPill');if(!el)return;let c=selected('cityFilter');
 function render(){populate();let rows=filtered();kpis(rows);daily(rows);let out=rows.filter(outS),total=out.length;pareto('codes','chartCodes',count(out,r=>r.codigo).slice(0,12),total);pareto('nodes','chartNodes',count(out,r=>r.node).slice(0,12),total);insights(rows);events(rows);cities();pill()}
 function reset(){['cityFilter'].forEach(id=>Array.from($(id).options).forEach(o=>o.selected=false));$('statusFilter').value='TODOS';$('startDate').value='';$('endDate').value='';populate();render()}
 async function exportPng(){let cnv=await html2canvas($('dashboardRoot'),{scale:2,backgroundColor:'#f4f6fa',useCORS:true});let a=document.createElement('a');a.download=`relatorio_flag_24h_${new Date().toISOString().slice(0,10)}.png`;a.href=cnv.toDataURL('image/png');a.click()}
-async function processExcelBuffer(buffer,fileName){if(typeof XLSX==='undefined')throw new Error('Biblioteca XLSX não carregou. Abra o HTML com internet ativa.');$('loadStatus').innerHTML=`Lendo <strong>${fileName}</strong>...`;let wb=XLSX.read(buffer,{type:'array',cellDates:true});let sheet=wb.SheetNames.find(s=>['ANA','ANALITICO','ANALÍTICO'].includes(up(s)))||wb.SheetNames[0];if(!sheet)throw new Error('O arquivo não possui planilhas.');let json=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{defval:''});rawData=json.map(normRow).filter(r=>r.data||r.cidade||r.tecnico||r.status);$('startDate').value='';$('endDate').value='';populate();render();let m=metrics(rawData);let datasValidas=rawData.map(r=>r.data).filter(Boolean).sort(),ultimaData=datasValidas.at(-1)||'N/I';$('loadStatus').innerHTML=`Arquivo carregado: <strong>${fileName}</strong> | Aba: <strong>${sheet}</strong> | Linhas: <strong>${fmt(rawData.length)}</strong> | Até: <strong>${ultimaData.split('-').reverse().join('/')}</strong> | Dentro: <strong>${fmt(m.i)}</strong> | Fora: <strong>${fmt(m.o)}</strong> | Projeção: <strong>${pct2(m.proj)}</strong>`;return rawData.length}
+async function processExcelBuffer(buffer,fileName){if(typeof XLSX==='undefined')throw new Error('Biblioteca XLSX não carregou. Abra o HTML com internet ativa.');$('loadStatus').innerHTML=`Lendo <strong>${fileName}</strong>...`;let wb=XLSX.read(buffer,{type:'array',cellDates:true});let sheet=wb.SheetNames.find(s=>['ANA','ANALITICO','ANALÍTICO'].includes(up(s)))||wb.SheetNames[0];if(!sheet)throw new Error('O arquivo não possui planilhas.');let json=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{defval:''}),period=historyPeriod(fileName);rawData=json.map(row=>{let normalized=normRow(row);if(period){let sourceDate=val(row,['DT_AGENDA','DIA'])||val(row,['DT_BAIXA','Data','DATA','DT_ATEND']);normalized.data=parseDateForPeriod(sourceDate,period)}return normalized}).filter(r=>r.data||r.cidade||r.tecnico||r.status);$('startDate').value=period?period.start:'';$('endDate').value=period?period.end:'';populate();render();let m=metrics(rawData);let datasValidas=rawData.map(r=>r.data).filter(Boolean).sort(),ultimaData=datasValidas.at(-1)||'N/I';$('loadStatus').innerHTML=`Arquivo carregado: <strong>${fileName}</strong> | Aba: <strong>${sheet}</strong> | Linhas: <strong>${fmt(rawData.length)}</strong> | Até: <strong>${ultimaData.split('-').reverse().join('/')}</strong> | Dentro: <strong>${fmt(m.i)}</strong> | Fora: <strong>${fmt(m.o)}</strong> | Projeção: <strong>${pct2(m.proj)}</strong>`;return rawData.length}
 async function loadExcel(e){let file=e.target.files&&e.target.files[0];if(!file)return;try{await processExcelBuffer(await file.arrayBuffer(),file.name)}catch(err){console.error(err);$('loadStatus').innerHTML=`<strong>Erro ao alimentar Excel:</strong> ${err.message}`}finally{e.target.value=''}}
 
 const FLAG_SUPABASE_URL='https://frxfoztyctrvsobbawmo.supabase.co';
