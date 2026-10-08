@@ -50,8 +50,8 @@
 <body>
 <div id="standaloneNav" style="display:none;background:#171717;color:#fff;padding:9px 14px;font:12px Arial;align-items:center;gap:10px"><button onclick="location.href='./index.html'" style="border:0;border-radius:7px;background:#fff;color:#d00000;font-weight:900;padding:7px 11px;cursor:pointer">← Portal</button><b>AT1 Histórico</b></div>
 <div class="app" id="dashboardRoot"><div class="topline"></div>
-<header class="header"><div class="brand"><h1>RELATÓRIO EXECUTIVO <span>AT1 / G1</span></h1><p>Arquivo atual e histórico carregados diretamente do Supabase Storage</p></div><div class="source"><div class="field"><label>BASE DISPONÍVEL NO SUPABASE</label><select id="sourceSelect"><option>Carregando lista...</option></select></div><button class="btn" id="loadBtn">CARREGAR</button><button class="btn secondary" id="refreshBtn">ATUALIZAR LISTA</button></div></header>
-<div class="statusbar" id="statusbar"><i class="dot"></i><span id="status">V5.0 HTML carregado · iniciando arquivo local de boot...</span><small id="updated">Sem base carregada</small></div>
+<header class="header"><div class="brand"><h1>RELATÓRIO EXECUTIVO <span>AT1 / G1</span></h1><p>Base única anual carregada diretamente do Supabase Storage</p></div><div class="source"><div class="field"><label>BASE DISPONÍVEL NO SUPABASE</label><select id="sourceSelect"><option>Carregando lista...</option></select></div><button class="btn" id="loadBtn">CARREGAR</button><button class="btn secondary" id="refreshBtn">ATUALIZAR LISTA</button></div></header>
+<div class="statusbar" id="statusbar"><i class="dot"></i><span id="status">V2 UNIFICADA HTML carregado · iniciando arquivo local de boot...</span><small id="updated">Sem base carregada</small></div>
 <main class="main">
 <section class="kpis"><div class="kpi"><b>AT1 PROJEÇÃO</b><strong id="kAt1">0,00%</strong></div><div class="kpi"><b>G1 PROJEÇÃO</b><strong id="kG1">0,00%</strong></div><div class="kpi"><b>VT EXECUTADA</b><strong id="kExec">0</strong></div><div class="kpi"><b>VT GERADA</b><strong id="kGer">0</strong></div><div class="kpi"><b>BASE CLIENTE</b><strong id="kBase">0</strong></div><div class="kpi"><b>META</b><strong id="kMeta">0,0%</strong></div></section>
 <section class="toolbar"><div class="field"><label>MUNICÍPIO</label><select id="fCity"></select></div><div class="field"><label>PRODUTO</label><select id="fType"><option>TOTAL</option><option>GPON</option><option>HFC</option><option>HIBRIDO</option></select></div><div class="field"><label>DATA INÍCIO</label><input type="date" id="fStart"></div><div class="field"><label>DATA FIM</label><input type="date" id="fEnd"></div><div class="field"><label>NODE</label><select id="fNode"></select></div><div class="field"><label>CÓDIGO DE BAIXA</label><select id="fBaixa"></select></div><div class="buttons"><button class="btn secondary" id="clearBtn">LIMPAR</button><button class="btn" id="pngBtn">PNG</button></div></section>
@@ -59,7 +59,7 @@
 <section class="panel"><h2>Diário NODE - TOP 20</h2><div class="heatwrap" id="nodeHeat"></div></section>
 <section class="panel"><h2>Diário CÓDIGO DE BAIXA - TOP 20</h2><div class="heatwrap" id="baixaHeat"></div></section>
 <section class="panel"><h2>Insights automáticos</h2><div class="insights" id="insights"><div class="empty">Carregue uma base para gerar os insights.</div></div></section>
-</main><footer class="footer"><span id="fileInfo">Nenhum arquivo carregado.</span><span class="owner">Propriedade e criação: Demétrius Chiesa · V5.0</span></footer></div>
+</main><footer class="footer"><span id="fileInfo">Nenhum arquivo carregado.</span><span class="owner">Propriedade e criação: Demétrius Chiesa · V2 UNIFICADA</span></footer></div>
 
 <script>
 (function () {
