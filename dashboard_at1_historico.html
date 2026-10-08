@@ -48,6 +48,133 @@
 <!-- ALTERACAO: cabecalho padrao aprovado, sem interferencia nos scripts do relatorio -->
 </head>
 <body>
+
+<script>
+(function () {
+    'use strict';
+
+    /*
+     * REMOVE SOMENTE O CABECALHO DUPLICADO DO PORTAL
+     * QUANDO O DASHBOARD ESTIVER ABERTO DENTRO DE IFRAME.
+     */
+    function removerBannerDuplicado() {
+
+        /*
+         * Se a página estiver aberta diretamente em uma nova aba,
+         * não remove nenhum cabeçalho.
+         */
+        if (window.self === window.top) {
+            return;
+        }
+
+        const elementos = Array.from(
+            document.querySelectorAll('body *')
+        );
+
+        elementos.forEach(function (elemento) {
+
+            /*
+             * Evita analisar o próprio dashboard.
+             */
+            if (
+                elemento.id === 'dashboardRoot' ||
+                elemento.closest('#dashboardRoot')
+            ) {
+                return;
+            }
+
+            const texto = (
+                elemento.textContent || ''
+            )
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toUpperCase();
+
+            /*
+             * Identifica exclusivamente o banner do portal.
+             */
+            const possuiTitulo =
+                texto.includes('PORTAL DE INDICADORES');
+
+            const possuiServicos =
+                texto.includes('SERVIÇOS TÉCNICOS');
+
+            const possuiBotaoPortal =
+                texto.includes('VOLTAR PARA O PORTAL');
+
+            if (
+                possuiTitulo &&
+                (
+                    possuiServicos ||
+                    possuiBotaoPortal
+                )
+            ) {
+                let bloco = elemento;
+
+                /*
+                 * Sobe na estrutura até localizar o bloco principal
+                 * inserido diretamente dentro do BODY.
+                 */
+                while (
+                    bloco.parentElement &&
+                    bloco.parentElement !== document.body &&
+                    bloco.parentElement.id !== 'dashboardRoot'
+                ) {
+                    bloco = bloco.parentElement;
+                }
+
+                /*
+                 * Segurança: nunca remove o relatório.
+                 */
+                if (
+                    bloco &&
+                    bloco.id !== 'dashboardRoot' &&
+                    !bloco.contains(
+                        document.getElementById('dashboardRoot')
+                    )
+                ) {
+                    bloco.remove();
+                }
+            }
+        });
+    }
+
+    /*
+     * Executa assim que o HTML estiver disponível.
+     */
+    document.addEventListener(
+        'DOMContentLoaded',
+        removerBannerDuplicado
+    );
+
+    /*
+     * Observa inserções posteriores feitas pelos scripts do portal.
+     */
+    const observadorBanner = new MutationObserver(function () {
+        removerBannerDuplicado();
+    });
+
+    observadorBanner.observe(
+        document.documentElement,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+    /*
+     * Reforço para scripts que carregam depois.
+     */
+    window.addEventListener(
+        'load',
+        removerBannerDuplicado
+    );
+
+    setTimeout(removerBannerDuplicado, 300);
+    setTimeout(removerBannerDuplicado, 1000);
+    setTimeout(removerBannerDuplicado, 2500);
+})();
+</script>
 <div id="standaloneNav" style="display:none;background:#171717;color:#fff;padding:9px 14px;font:12px Arial;align-items:center;gap:10px"><button onclick="location.href='./index.html'" style="border:0;border-radius:7px;background:#fff;color:#d00000;font-weight:900;padding:7px 11px;cursor:pointer">← Portal</button><b>AT1 Histórico</b></div>
 <div class="app" id="dashboardRoot"><div class="topline"></div>
 <header class="header"><div class="brand"><h1>RELATÓRIO EXECUTIVO <span>AT1 / G1</span></h1><p>Base única anual carregada diretamente do Supabase Storage</p></div><div class="source"><div class="field"><label>BASE DISPONÍVEL NO SUPABASE</label><select id="sourceSelect"><option>Carregando lista...</option></select></div><button class="btn" id="loadBtn">CARREGAR</button><button class="btn secondary" id="refreshBtn">ATUALIZAR LISTA</button></div></header>
