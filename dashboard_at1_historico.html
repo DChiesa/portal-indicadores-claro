@@ -41,9 +41,18 @@
 .diary-period-v4 .period-bubble{position:absolute;left:50%;top:1px;transform:translate(-50%,-50%);z-index:2;background:var(--event,#0ea5e9);color:#fff;border-radius:6px;padding:4px 7px;font-size:10px;font-weight:900;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 8px #0003}
 .diary-period-v4 .period-start:after,.diary-period-v4 .period-end:after{content:"";position:absolute;bottom:-4px;width:8px;height:8px;border-radius:50%;background:var(--event,#0ea5e9);box-shadow:0 0 0 2px #fff}
 .diary-period-v4 .period-start:after{left:-2.5px}.diary-period-v4 .period-end:after{right:-2.5px}
+
+/* V7 - AJUSTE CIRURGICO: cabeçalho interno, fonte automática e mês único */
+.source{display:none!important}
+.toolbar{grid-template-columns:repeat(6,minmax(120px,1fr))}
+.date-legacy{display:none!important}
+#fMonth{width:100%;height:36px;border:1px solid #98a2b3;border-radius:7px;background:#fff;padding:0 9px;font-size:12px}
+.portal-duplicate-hidden{display:none!important}
+@media(max-width:1100px){.toolbar{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:650px){.toolbar{grid-template-columns:repeat(2,1fr)}}
 </style>
-<script src="./dashboard_at1_historico.boot.js?v=900" defer></script>
-<script src="./dashboard_at1_historico.diario.js?v=900" defer></script>
+<script src="./dashboard_at1_historico.boot.js?v=701" defer></script>
+<script src="./dashboard_at1_historico.diario.js?v=701" defer></script>
 
 <!-- ALTERACAO: cabecalho padrao aprovado, sem interferencia nos scripts do relatorio -->
 </head>
@@ -177,11 +186,11 @@
 </script>
 <div id="standaloneNav" style="display:none;background:#171717;color:#fff;padding:9px 14px;font:12px Arial;align-items:center;gap:10px"><button onclick="location.href='./index.html'" style="border:0;border-radius:7px;background:#fff;color:#d00000;font-weight:900;padding:7px 11px;cursor:pointer">← Portal</button><b>AT1 Histórico</b></div>
 <div class="app" id="dashboardRoot"><div class="topline"></div>
-<header class="header"><div class="brand"><h1>RELATÓRIO EXECUTIVO <span>AT1 / G1</span></h1><p>Base única anual • carregamento automático</p></div><div class="source" style="display:none"><select id="sourceSelect"><option value="atual/analitico_unificado.xlsx">Base única</option></select><button id="loadBtn">CARREGAR</button><button id="refreshBtn">ATUALIZAR</button></div></header>
+<header class="header"><div class="brand"><h1>RELATÓRIO EXECUTIVO <span>AT1 / G1</span></h1><p>Base única anual carregada diretamente do Supabase Storage</p></div><div class="source"><div class="field"><label>BASE DISPONÍVEL NO SUPABASE</label><select id="sourceSelect"><option>Carregando lista...</option></select></div><button class="btn" id="loadBtn">CARREGAR</button><button class="btn secondary" id="refreshBtn">ATUALIZAR LISTA</button></div></header>
 <div class="statusbar" id="statusbar"><i class="dot"></i><span id="status">V2 UNIFICADA HTML carregado · iniciando arquivo local de boot...</span><small id="updated">Sem base carregada</small></div>
 <main class="main">
 <section class="kpis"><div class="kpi"><b>AT1 PROJEÇÃO</b><strong id="kAt1">0,00%</strong></div><div class="kpi"><b>G1 PROJEÇÃO</b><strong id="kG1">0,00%</strong></div><div class="kpi"><b>VT EXECUTADA</b><strong id="kExec">0</strong></div><div class="kpi"><b>VT GERADA</b><strong id="kGer">0</strong></div><div class="kpi"><b>BASE CLIENTE</b><strong id="kBase">0</strong></div><div class="kpi"><b>META</b><strong id="kMeta">0,0%</strong></div></section>
-<section class="toolbar"><div class="field"><label>MUNICÍPIO</label><select id="fCity"></select></div><div class="field"><label>PRODUTO</label><select id="fType"><option>TOTAL</option><option>GPON</option><option>HFC</option><option>HIBRIDO</option></select></div><div class="field"><label>DATA INÍCIO</label><input type="date" id="fStart"></div><div class="field"><label>DATA FIM</label><input type="date" id="fEnd"></div><div class="field"><label>NODE</label><select id="fNode"></select></div><div class="field"><label>CÓDIGO DE BAIXA</label><select id="fBaixa"></select></div><div class="buttons"><button class="btn secondary" id="clearBtn">LIMPAR</button><button class="btn" id="pngBtn">PNG</button></div></section>
+<section class="toolbar"><div class="field"><label>MUNICÍPIO</label><select id="fCity"></select></div><div class="field"><label>PRODUTO</label><select id="fType"><option>TOTAL</option><option>GPON</option><option>HFC</option><option>HIBRIDO</option></select></div><div class="field"><label>MÊS</label><select id="fMonth" aria-label="Selecionar mês"></select></div><div class="field date-legacy"><label>DATA INÍCIO</label><input type="date" id="fStart"></div><div class="field date-legacy"><label>DATA FIM</label><input type="date" id="fEnd"></div><div class="field"><label>NODE</label><select id="fNode"></select></div><div class="field"><label>CÓDIGO DE BAIXA</label><select id="fBaixa"></select></div><div class="buttons"><button class="btn secondary" id="clearBtn">LIMPAR</button><button class="btn" id="pngBtn">PNG</button></div></section>
 <div class="grid2"><section class="panel"><h2 id="chartTitle">Evolução diária</h2><div class="chartbox"><canvas id="chart"></canvas></div></section><section class="panel"><h2>Resumo do filtro</h2><div class="summary"><div class="mini"><b>REGISTROS</b><strong id="mReg">0</strong></div><div class="mini"><b>NODES</b><strong id="mNodes">0</strong></div><div class="mini"><b>CÓD. BAIXA</b><strong id="mBaixas">0</strong></div><div class="mini"><b>AT1 EXEC.</b><strong id="mAt1">0</strong></div></div><div class="tablewrap" id="detail"></div></section></div>
 <section class="panel"><h2>Diário NODE - TOP 20</h2><div class="heatwrap" id="nodeHeat"></div></section>
 <section class="panel"><h2>Diário CÓDIGO DE BAIXA - TOP 20</h2><div class="heatwrap" id="baixaHeat"></div></section>
@@ -443,6 +452,62 @@
 <div class="diary-tools"><button class="btn secondary" id="diaryAllCities" type="button">TODOS OS EVENTOS DO MÊS</button><button class="btn secondary" id="diaryExportCity" type="button">EXPORTAR CIDADE</button><button class="btn secondary" id="diaryExportAll" type="button">EXPORTAR TODAS AS CIDADES</button></div>
 <div class="diary-list" id="diaryList"></div><div class="diary-status" id="diaryStatus">Conectando ao Supabase...</div>
 </section></div>
+
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const MESES=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+  /* Atua somente dentro do documento do relatório. O banner e os botões do portal-pai são preservados. */
+  function ocultarBannerInterno(){
+    if(window.self===window.top)return;
+    const root=$('dashboardRoot');
+    [...document.body.children].forEach(el=>{
+      if(el===root||el.contains(root)||el.id==='standaloneNav'||el.tagName==='SCRIPT')return;
+      const txt=(el.textContent||'').replace(/\s+/g,' ').trim().toUpperCase();
+      if(txt.includes('PORTAL DE INDICADORES')&&(txt.includes('SERVIÇOS TÉCNICOS')||txt.includes('VOLTAR PARA O PORTAL'))){
+        el.classList.add('portal-duplicate-hidden');
+        el.setAttribute('aria-hidden','true');
+      }
+    });
+    document.body.classList.remove('clv-ready');
+    document.body.style.paddingTop='0';
+    document.documentElement.style.setProperty('--clv-header-height','0px');
+  }
+
+  function isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function preencherMeses(){
+    const sel=$('fMonth'); if(!sel||sel.options.length)return;
+    const hoje=new Date(),ano=hoje.getFullYear(),ultimoMes=hoje.getMonth()+1;
+    for(let m=1;m<=ultimoMes;m++){
+      const opt=new Option(MESES[m-1]+'/'+ano,ano+'-'+String(m).padStart(2,'0'));
+      sel.add(opt);
+    }
+    sel.value=ano+'-'+String(ultimoMes).padStart(2,'0');
+    aplicarMes(sel.value,false);
+  }
+  function aplicarMes(valor,disparar=true){
+    if(!valor)return;
+    const [ano,mes]=valor.split('-').map(Number),ini=new Date(ano,mes-1,1),fim=new Date(ano,mes,0);
+    const a=$('fStart'),b=$('fEnd'); if(!a||!b)return;
+    a.value=isoLocal(ini); b.value=isoLocal(fim);
+    if(disparar){a.dispatchEvent(new Event('change',{bubbles:true}));b.dispatchEvent(new Event('change',{bubbles:true}));}
+  }
+  function sincronizarMesPelasDatas(){
+    const sel=$('fMonth'),a=$('fStart'); if(!sel||!a||!a.value)return;
+    const ym=a.value.slice(0,7); if([...sel.options].some(o=>o.value===ym))sel.value=ym;
+  }
+  function iniciar(){
+    ocultarBannerInterno(); preencherMeses();
+    $('fMonth')?.addEventListener('change',e=>aplicarMes(e.target.value,true));
+    $('clearBtn')?.addEventListener('click',()=>setTimeout(()=>{const sel=$('fMonth');if(sel)aplicarMes(sel.value,true)},0));
+    new MutationObserver(()=>{ocultarBannerInterno();sincronizarMesPelasDatas()}).observe(document.body,{childList:true,subtree:true});
+    [100,400,1000,2500].forEach(ms=>setTimeout(()=>{ocultarBannerInterno();sincronizarMesPelasDatas()},ms));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);else iniciar();
+})();
+</script>
 </body>
 </html>
 
