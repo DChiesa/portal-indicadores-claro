@@ -18,7 +18,18 @@ const METAS={TOTAL:.024,GPON:.014,HFC:.024,HIBRIDO:.035};
 let sb=null,chart=null,refreshTimer=null;
 let state={analitico:[],base:[],historico:[],codigos:[],contractMode:'top',baixaMode:'code',city:'BAGE',type:'TOTAL',start:'',end:'',node:'TODOS',baixa:'TODOS',file:null,sourceKind:'current',catalog:[]};
 const MONTHS=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+function removeDuplicatePortalBanners(){
+  try{
+    if(window.self===window.top||!window.parent?.document)return;
+    const doc=window.parent.document,frames=[...doc.querySelectorAll('iframe')],mine=frames.find(f=>f.contentWindow===window);
+    if(!mine)return;
+    const candidates=[...doc.body.children].filter(el=>el!==mine&&!el.contains(mine));
+    const banners=candidates.filter(el=>{const t=(el.textContent||'').replace(/\s+/g,' ').trim().toUpperCase();return t.includes('PORTAL DE INDICADORES')&&t.includes('SERVIÇOS TÉCNICOS')});
+    if(banners.length>1)banners.slice(1).forEach(el=>el.remove());
+  }catch(_){/* origem diferente: nenhuma alteração no portal-pai */}
+}
 function enforceFastPortalLayout(){
+  removeDuplicatePortalBanners();
   let style=document.getElementById('at1-fast-portal-style');
   if(!style){style=document.createElement('style');style.id='at1-fast-portal-style';style.textContent='.source{display:none!important}.date-legacy{display:none!important}.toolbar{grid-template-columns:repeat(6,minmax(120px,1fr))!important}.portal-duplicate-hidden{display:none!important}@media(max-width:1100px){.toolbar{grid-template-columns:repeat(3,1fr)!important}}@media(max-width:650px){.toolbar{grid-template-columns:repeat(2,1fr)!important}}';document.head.appendChild(style)}
   document.querySelectorAll('.source').forEach(e=>e.style.setProperty('display','none','important'));
