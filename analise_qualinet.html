@@ -27,6 +27,7 @@
     table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:15px;overflow:hidden}th,td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:12px;text-align:left;vertical-align:top}th{background:#fafafa;color:#475467;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}.mono{font-family:Consolas,monospace}.badge{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;white-space:nowrap}.b-ok{background:#ecfdf3;color:var(--ok)}.b-risk{background:#fffaeb;color:var(--risk)}.b-late{background:#fef3f2;color:var(--late)}.b-conv{background:#f4f3ff;color:var(--conv)}.b-node{background:#eff8ff;color:var(--node)}
     .empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed #cfd4dc;border-radius:15px;background:#fff}.insight{margin-top:12px;border-left:5px solid var(--claro);background:#fff;border-radius:14px;border:1px solid var(--line);padding:12px}.insight h3{margin:0 0 8px;font-size:14px}.insight ul{margin:0;padding-left:18px}.insight li{font-size:12.5px;margin:5px 0;color:#344054}.footer-note{font-size:11px;color:#667085;margin-top:10px;line-height:1.45}.hidden{display:none!important}
     .backlogBox{margin:0 0 12px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:15px}.backlogBox h3{margin:0 0 8px;font-size:14px}.backlogText{width:100%;height:145px;resize:vertical;border:1px solid #d0d5dd;border-radius:11px;padding:10px;font-family:Consolas,monospace;font-size:12px;background:#fafafa}
+    .whatsModal{position:fixed;inset:0;z-index:1000000;background:rgba(17,24,39,.65);display:flex;align-items:center;justify-content:center;padding:18px}.whatsCard{width:min(760px,100%);max-height:92vh;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.3);padding:18px;display:flex;flex-direction:column;gap:12px}.whatsHead{display:flex;align-items:center;justify-content:space-between;gap:12px}.whatsHead h2{margin:0;font-size:18px}.whatsText{width:100%;height:min(64vh,620px);resize:vertical;border:1px solid #d0d5dd;border-radius:12px;padding:14px;font-family:Consolas,monospace;font-size:13px;line-height:1.5;background:#fafafa;color:#101828}.whatsActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
     .updateBanner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:13px 15px;border-radius:16px;background:linear-gradient(135deg,#fff1f0,#ffffff);border:1px solid #f1b5b0;box-shadow:var(--shadow)}.updateBanner span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:900}.updateBanner b{font-size:19px;color:var(--claro);font-family:Consolas,monospace}.soft.active{background:var(--claro);color:#fff}.addr{max-width:320px;line-height:1.35}.nowrap{white-space:nowrap}
     @media(max-width:1180px){.miniGrid{grid-template-columns:1fr 1fr}}@media(max-width:1050px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.miniGrid{grid-template-columns:1fr 1fr}}@media(max-width:700px){.miniGrid{grid-template-columns:1fr}.dashRow{grid-template-columns:1fr}.dashValue{text-align:left}.dashTrack{height:18px}.backTop{right:14px;bottom:14px}}
   </style>
@@ -93,6 +94,7 @@
     </section>
   </div>
 </main>
+<div id="whatsModal" class="whatsModal hidden" role="dialog" aria-modal="true" aria-labelledby="whatsTitulo"><div class="whatsCard"><div class="whatsHead"><h2 id="whatsTitulo">Dados para copiar</h2><button class="soft" type="button" onclick="fecharJanelaWhatsApp()">Fechar</button></div><div class="small">Confira o conteúdo e use o botão abaixo para copiar.</div><textarea id="whatsText" class="whatsText" readonly aria-label="Texto formatado para WhatsApp"></textarea><div class="whatsActions"><button class="primary" type="button" onclick="copiarTextoWhatsApp()">Copiar dados</button></div></div></div>
 <button id="backTop" class="backTop" type="button" onclick="voltarAoTopo()" aria-label="Voltar ao topo" title="Voltar ao topo">↑</button>
 <script>
 let dados=[], blocosDetectados=0, filtroNodes=new Set(), filtroLogs=new Set(), filtroStatus=new Set(), filtroCidades=new Set(), filtroProdutos=new Set(), filtroModelos=new Set(), filtroPacotes=new Set(), filtroTerminais=new Set(), mostrarEndereco=false, mostrarPacote=false, mostrarTerminal=false, ordenarEstouro=false, dadosAtualizadosAte='';
@@ -178,20 +180,25 @@ function modeloDoBloco(bloco){return resumoAgrupado(equipamentosDoBloco(bloco),'
 function pacoteDoBloco(bloco){return resumoAgrupado(equipamentosDoBloco(bloco),'pacote')}
 function terminalDoBloco(bloco){return resumoTerminal(equipamentosDoBloco(bloco))}
 function nodeDoBloco(bloco){const m=bloco.match(/\bNODE\s*:\s*([A-Z0-9._-]+)/i);return m?m[1].toUpperCase():'N/I'}
+function gponDoBloco(bloco){const m=bloco.match(/\bGPON\s*:\s*([^\n]+)/i);return m?limparCampo(m[1]).toUpperCase():''}
 function enderecoDoBloco(bloco){const m=bloco.match(/ENDEREÇO\s*:\s*([\s\S]*?)(?=\s+ABERTURA\s*:|\n|$)/i);return m?m[1].replace(/\s+/g,' ').trim():'N/I'}
 function extrairAtualizacao(texto){const matches=[...(texto||'').matchAll(/(?:©\s*2006-2026\s*QualiNET[\s\S]*?)?(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})/gi)];return matches.length?matches[matches.length-1][1]:''}
 function referenciaDoBloco(texto){const v=extrairAtualizacao(texto);if(!v)return new Date();const m=v.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);return m?new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+m[6]):new Date()}
 function logsDoBloco(bloco){const logs=new Set();let m;const re=/\bLOG\s*[:\-]?\s*(\d+)\b|\bLOG(\d+)\b|\bAT5\s*[:\-]?\s*\(?\s*(\d+)\s*\)?\b/gi;while((m=re.exec(bloco))!==null){const v=m[1]||m[2]||m[3];if(v!==undefined)logs.add(String(v))}return [...logs].sort((a,b)=>Number(a)-Number(b))}
-function baixasDoBloco(bloco){
+function baixasDoBloco(bloco,referencia){
   const encontrados=[];
-  const adicionar=v=>{String(v||'').match(/\b\d{3,4}\b/g)?.forEach(c=>{if(!encontrados.includes(c))encontrados.push(c)})};
-  const linhas=(bloco||'').split(/\n+/);
-  linhas.forEach(l=>{
-    if(/\b(BAIXAS?|COD(?:IGO)?S?\s+DE\s+BAIXA|COD(?:IGO)?\s+BAIXA)\b/i.test(l))adicionar(l);
+  const fim=new Date(referencia); fim.setHours(23,59,59,999);
+  const inicio=new Date(fim); inicio.setHours(0,0,0,0); inicio.setDate(inicio.getDate()-30);
+  (bloco||'').split(/\n+/).map(l=>limparCampo(l)).filter(Boolean).forEach(l=>{
+    const dm=l.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+    if(!dm||!/(?:^|[;\s])VT\s+(?:VTA|DIG|FONE)\s*:/i.test(l))return;
+    const data=new Date(+dm[3],+dm[2]-1,+dm[1]);
+    if(data<inicio||data>fim)return;
+    [...l.matchAll(/#\s*(\d{3,4})\b/g)].map(m=>m[1]).forEach(c=>{if(!encontrados.includes(c))encontrados.push(c)});
   });
   return encontrados;
 }
-function extrair(texto){const ano=document.getElementById('baseYear').value||new Date().getFullYear();const t=normalizar(texto);const blocos=encontrarBlocos(t);const referencia=referenciaDoBloco(t);const out=[];const reArea=/\bAREA(?:\s+[^:\n]+)?\s*:\s*(\d{1,2})\s*\/\s*(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/i;const reAbert=/ABERTURA\s*:\s*(\d{1,2})\s*\/\s*(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)\s*(\d{1,2}:\d{2}(?::\d{2})?)/i;blocos.forEach(b=>{const bloco=b.texto,area=bloco.match(reArea),ab=bloco.match(reAbert);if(!area||!ab)return;const flagConv=/FLAG\s*CONV\.?|F\s*L\s*A\s*G\s*C\s*O\s*N\s*V\.?|CONVENI[ÊE]NCIA/i.test(bloco);const abertura=parseData(ab[1],ab[2],ab[3],ano);let inicio=parseData(area[1],area[2],area[3]+':00',ano),fim=parseData(area[1],area[2],area[4]+':00',ano);if(fim<=inicio)fim.setDate(fim.getDate()+1);if(inicio<abertura&&inicio.getMonth()<abertura.getMonth()){inicio.setFullYear(inicio.getFullYear()+1);fim.setFullYear(fim.getFullYear()+1)}const limite24=new Date(abertura.getTime()+24*60*60*1000),fecharAte=new Date(limite24.getTime()-60000),st=statusInfo(inicio,fim,limite24,flagConv,referencia);out.push({cidade:b.cidade,sigla:b.sigla,contrato:b.contrato,endereco:enderecoDoBloco(bloco),node:nodeDoBloco(bloco),produto:produtoDoBloco(bloco),equipamentos:equipamentosDoBloco(bloco),modelo:modeloDoBloco(bloco),pacote:pacoteDoBloco(bloco),terminal:terminalDoBloco(bloco),logs:logsDoBloco(bloco),abertura,inicio,fim,limite24,fecharAte,status:st.status,cls:st.cls,acao:st.acao,flagConv,blocoOriginal:bloco,baixas:baixasDoBloco(bloco)})});return out}
+function extrair(texto){const ano=document.getElementById('baseYear').value||new Date().getFullYear();const t=normalizar(texto);const blocos=encontrarBlocos(t);const referencia=referenciaDoBloco(t);const out=[];const reArea=/\bAREA(?:\s+[^:\n]+)?\s*:\s*(\d{1,2})\s*\/\s*(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/i;const reAbert=/ABERTURA\s*:\s*(\d{1,2})\s*\/\s*(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)\s*(\d{1,2}:\d{2}(?::\d{2})?)/i;blocos.forEach(b=>{const bloco=b.texto,area=bloco.match(reArea),ab=bloco.match(reAbert);if(!area||!ab)return;const flagConv=/FLAG\s*CONV\.?|F\s*L\s*A\s*G\s*C\s*O\s*N\s*V\.?|CONVENI[ÊE]NCIA/i.test(bloco);const abertura=parseData(ab[1],ab[2],ab[3],ano);let inicio=parseData(area[1],area[2],area[3]+':00',ano),fim=parseData(area[1],area[2],area[4]+':00',ano);if(fim<=inicio)fim.setDate(fim.getDate()+1);if(inicio<abertura&&inicio.getMonth()<abertura.getMonth()){inicio.setFullYear(inicio.getFullYear()+1);fim.setFullYear(fim.getFullYear()+1)}const limite24=new Date(abertura.getTime()+24*60*60*1000),fecharAte=new Date(limite24.getTime()-60000),st=statusInfo(inicio,fim,limite24,flagConv,referencia);out.push({cidade:b.cidade,sigla:b.sigla,contrato:b.contrato,endereco:enderecoDoBloco(bloco),node:nodeDoBloco(bloco),gpon:gponDoBloco(bloco),produto:produtoDoBloco(bloco),equipamentos:equipamentosDoBloco(bloco),modelo:modeloDoBloco(bloco),pacote:pacoteDoBloco(bloco),terminal:terminalDoBloco(bloco),logs:logsDoBloco(bloco),abertura,inicio,fim,limite24,fecharAte,status:st.status,cls:st.cls,acao:st.acao,flagConv,blocoOriginal:bloco,baixas:baixasDoBloco(bloco,referencia)})});return out}
 function processar(){const bruto=document.getElementById('rawText').value;dadosAtualizadosAte=extrairAtualizacao(bruto);dados=extrair(bruto);limparTodosFiltros(false);renderTudo();if(!window.__qualinetCarregandoOnline&&bruto.trim()&&dados.length>0){window.qualinetSalvarUltimaLeitura?.(bruto,document.getElementById('fileInput')?.files?.[0]?.name||'texto_colado',dados.length)}else if(!window.__qualinetCarregandoOnline&&bruto.trim()&&dados.length===0){alert('Nenhuma medição válida foi localizada. A última análise salva foi mantida e não será substituída.')}}
 function dadosBaseCidade(){return dados.filter(d=>!filtroCidades.size||filtroCidades.has(d.cidade))}
 function toggleSet(set,valor){set.has(valor)?set.delete(valor):set.add(valor);sanitizarFiltrosCidade();renderTudo()}
@@ -229,29 +236,40 @@ function toggleEstouro(){ordenarEstouro=!ordenarEstouro;renderTudo()}
 function renderTudo(){sanitizarFiltrosCidade();const view=dadosFiltrados();const banner=document.getElementById('updateBanner');if(dados.length&&dadosAtualizadosAte){document.getElementById('dadosAtualizadosAte').textContent=dadosAtualizadosAte;banner.classList.remove('hidden')}else{banner.classList.add('hidden')}const btnEnd=document.getElementById('btnEndereco'),btnPac=document.getElementById('btnPacote'),btnTer=document.getElementById('btnTerminal'),btnEst=document.getElementById('btnEstouro');if(btnEnd){btnEnd.textContent=mostrarEndereco?'Ocultar endereços':'Mostrar endereços';btnEnd.classList.toggle('active',mostrarEndereco)}if(btnPac){btnPac.textContent=mostrarPacote?'Ocultar pacote':'Mostrar pacote';btnPac.classList.toggle('active',mostrarPacote)}if(btnTer){btnTer.textContent=mostrarTerminal?'Ocultar terminal':'Mostrar terminal';btnTer.classList.toggle('active',mostrarTerminal)}if(btnEst){btnEst.textContent=ordenarEstouro?'Ordem de estouro ativa':'Ordem de estouro';btnEst.classList.toggle('active',ordenarEstouro)}document.getElementById('kTotal').textContent=view.length;document.getElementById('kDentro').textContent=view.filter(d=>d.status===STATUS.DENTRO).length;document.getElementById('kRisco').textContent=view.filter(d=>d.status===STATUS.RISCO).length;document.getElementById('kFora').textContent=view.filter(d=>d.status===STATUS.FORA).length;document.getElementById('kConv').textContent=view.filter(d=>d.status===STATUS.CONV).length;document.getElementById('msg').textContent=dados.length?`Contratos analisados: ${dados.length}. Exibindo: ${view.length}. Blocos localizados: ${blocosDetectados}.`:`Nenhum contrato analisado. Blocos localizados: ${blocosDetectados}.`;const backlogBox=document.getElementById('backlogBox'),backlogText=document.getElementById('backlogText');if(backlogBox&&backlogText){backlogBox.classList.toggle('hidden',!dados.length);backlogText.value=dados.length?montarBacklog():''}renderChips();renderResumoProdutos();renderResumoModelosPacotes();renderDashboardFiltros(view);renderTabela(view);renderInsights(view)}
 function alternarEntrada(){const grid=document.getElementById('layoutGrid'),panel=document.getElementById('inputPanel'),btn=document.getElementById('btnExpandir');panel.classList.toggle('leftHidden');grid.classList.toggle('full');btn.classList.toggle('hidden')}
 async function exportarImagem(){const el=document.getElementById('captureArea');const canvas=await html2canvas(el,{backgroundColor:'#fff',scale:2});const link=document.createElement('a');link.download='claro_analise_janela_24h_status.png';link.href=canvas.toDataURL('image/png');link.click()}
-function formatarDataWhatsApp(dt){const ms=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];const p=n=>String(n).padStart(2,'0');return `${p(dt.getDate())}/${ms[dt.getMonth()]} ${p(dt.getHours())}:${p(dt.getMinutes())}:${p(dt.getSeconds())}`}
+function formatarDataWhatsApp(dt){const p=n=>String(n).padStart(2,'0');return `${p(dt.getDate())}/${p(dt.getMonth()+1)}/${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}:${p(dt.getSeconds())}`}
+function formatarPrazoWhatsApp(dt){const p=n=>String(n).padStart(2,'0');return `${p(dt.getDate())}/${p(dt.getMonth()+1)}/${dt.getFullYear()} às ${p(dt.getHours())}:${p(dt.getMinutes())}`}
+function formatarAberturaLog(dt){const ms=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];const p=n=>String(n).padStart(2,'0');return `${p(dt.getDate())}/${ms[dt.getMonth()]} ${p(dt.getHours())}:${p(dt.getMinutes())}:${p(dt.getSeconds())}`}
+function formatarJanelaFlag(d){return `${String(d.inicio.getHours()).padStart(2,'0')}x${String(d.fim.getHours()).padStart(2,'0')}`}
 function montarTextoWhatsApp(){
-  const view=dadosFiltrados();
-  const mensagens=[];
+  const view=dadosFiltrados(),mensagens=[];
   view.filter(d=>d.logs.some(l=>Number(l)>=2)).forEach(d=>{
-    const logs=d.logs.filter(l=>Number(l)>=2).map(l=>`LOGVT ${l}`).join('\n');
-    const baixas=d.baixas&&d.baixas.length?d.baixas.join('-'):'N/I';
-    mensagens.push(`LOG ${d.cidade} (${d.sigla}):\n\n${logs}\nBAIXAS: ${baixas}\nJANELA: ${soHora(d.inicio)} - ${soHora(d.fim)}\nCONTRATO: ${d.contrato}\nENDEREÇO: ${d.endereco||'N/I'}`);
+    const log=Math.max(...d.logs.filter(l=>Number(l)>=2).map(Number));
+    const baixas=d.baixas&&d.baixas.length?d.baixas.join(' - '):'N/I';
+    mensagens.push(`🚨 LOG VT ${d.cidade} (${d.sigla}) - LOG ${log}
+Contrato: ${d.contrato}
+Endereço: ${d.endereco||'N/I'}
+NODE: ${d.node}
+Abertura: ${formatarAberturaLog(d.abertura)}
+Janela: ${formatarAberturaLog(d.inicio).replace(/:\d{2}$/,'')} - ${soHora(d.fim)}
+Códigos de baixa: ${baixas}`);
   });
-  view.filter(d=>d.status===STATUS.RISCO).forEach(d=>{
-    mensagens.push(`VT FLAG ${d.cidade}\n\nABERTURA: ${formatarDataWhatsApp(d.abertura)}\nJANELA: ${soHora(d.inicio)} - ${soHora(d.fim)}\nCONTRATO:${d.contrato}\nENDEREÇO: ${d.endereco||'N/I'}`);
-  });
+  view.filter(d=>d.status===STATUS.RISCO).forEach(d=>mensagens.push(`📍 Cidade: ${d.cidade}
+📋 Contrato: ${d.contrato}
+🏠 Endereço: ${d.endereco||'N/I'}
+📡 NODE: ${d.node}
+🔌 GPON: ${d.gpon||''}
+📆 Abertura: ${formatarDataWhatsApp(d.abertura).split(' ')[0]}
+🕒 Horário: ${formatarDataWhatsApp(d.abertura).split(' ')[1]}
+🪟janela:${formatarJanelaFlag(d)}
+⏰ Vence 24h / Prazo Anatel: ${formatarPrazoWhatsApp(d.limite24)}`));
   return mensagens.join('\n\n--------------------\n\n');
 }
+function fecharJanelaWhatsApp(){document.getElementById('whatsModal')?.classList.add('hidden')}
+async function copiarTextoWhatsApp(){const campo=document.getElementById('whatsText');if(!campo)return;campo.focus();campo.select();try{await navigator.clipboard.writeText(campo.value)}catch(e){document.execCommand?.('copy')}}
+function exportarWhatsApp(){const texto=montarTextoWhatsApp();if(!texto){alert('Nenhum caso encontrado: LOG igual ou acima de 2 ou FLAG em risco, considerando os filtros atuais.');return}const modal=document.getElementById('whatsModal'),campo=document.getElementById('whatsText');campo.value=texto;modal.classList.remove('hidden');campo.focus();campo.select()}
 function nomeCidadeBacklog(cidade){const mapa={'BAGE':'Bagé','CAMAQUA':'Camaquã','PELOTAS':'Pelotas','RIO GRANDE':'Rio Grande','SAO LOURENCO DO SUL':'S. Lourenço'};return mapa[(cidade||'').toUpperCase()]||cidade}
 function montarBacklog(){const itens=countBy(dados,d=>d.cidade).sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));return ['Backlog',...itens.map(([cidade,q])=>`${nomeCidadeBacklog(cidade)} : ${String(q).padStart(2,'0')}`)].join('\n')}
 async function copiarBacklog(){const texto=montarBacklog(),campo=document.getElementById('backlogText');if(campo){campo.value=texto;campo.focus();campo.select()}try{await navigator.clipboard.writeText(texto)}catch(e){document.execCommand?.('copy')}}
-async function exportarWhatsApp(){
-  const texto=montarTextoWhatsApp();
-  if(!texto){alert('Nenhum caso encontrado: LOG igual ou acima de 2 ou FLAG em risco, considerando os filtros atuais.');return}
-  if(navigator.share){try{await navigator.share({text:texto});return}catch(e){if(e&&e.name==='AbortError')return}}
-  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank','noopener,noreferrer');
-}
 function limpar(){document.getElementById('rawText').value='';document.getElementById('filter').value='';dados=[];blocosDetectados=0;dadosAtualizadosAte='';limparTodosFiltros(false);renderTudo()}
 function carregarExemplo(){document.getElementById('rawText').value=`AT5 (0) PELOTAS (PLT): 398820242 instalado em 19/Abr/2024 NODE: CRZAB AREA 1: 21/Jun 08:00 - 11:00\nENDEREÇO: R ALCIDES VELLEDA 326 CASA 10 - AREAL ABERTURA: 16/Jun 22:49:21\nVT VTA [26...0473]: 08:00 - 11:00 [Agendamento para 21/06/2026 (08:00 - 11:00)] Prazo QualiNET/Anatel: 17/06 22:49\nFLAG CONV.\n\nPELOTAS (PLT): 398756170 instalado em 04/Jul/2023 NODE: CRZAB AREA 1: 19/Jun 17:00 - 20:00\nENDEREÇO: AV DR AUGUSTO SIMOES LOPES 493 - TRES VENDAS ABERTURA: 18/Jun 18:28:18\nVT VTA [26...5003]: 17:00 - 20:00 [Agendamento para 19/06/2026 (17:00 - 20:00)] Prazo QualiNET/Anatel: 19/06 18:28\n2026-06-18 19:09:58 TECNICO: LOG 2\n\nBAGE (BGE): 306000892 instalado em 09/Fev/2005 NODE: CNTDA AREA 1: 19/Jun 08:00 - 11:00\nENDEREÇO: AV MAL FLORIANO 2011 - CENTRO ABERTURA: 18/Jun 14:56:02\nVT DIG [26...2286]: 08:00 - 11:00 [Agendamento para 19/06/2026 (08:00 - 11:00)]\nLOG 1\n\nBAGE (BGE): 306111111 instalado em 01/Jan/2020 NODE: CNTDA AREA 1: 20/Jun 17:00 - 20:00\nENDEREÇO: TESTE ABERTURA: 18/Jun 14:00:00\nVT DIG [26...9999]: 17:00 - 20:00\nLOG 3\n\n© 2006-2026 QualiNET. Todos os direitos reservados. @ndcingqln001.dcing.corp:8088/NET001PRDLNX094:3308. 06/07/2026 09:57:10`;processar()}
 document.getElementById('fileInput').addEventListener('change',async ev=>{const file=ev.target.files[0];if(!file)return;const name=file.name.toLowerCase();if(name.endsWith('.docx')){if(!window.mammoth){alert('Biblioteca DOCX não carregada. Cole o texto no campo ou use TXT.');return}const arr=await file.arrayBuffer();const result=await mammoth.extractRawText({arrayBuffer:arr});document.getElementById('rawText').value=result.value;processar()}else{document.getElementById('rawText').value=await file.text();processar()}});
