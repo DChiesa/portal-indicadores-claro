@@ -48,5 +48,5 @@
   if (!document.getElementById('portal')?.classList.contains('hidden')) iniciar();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&iniciado){registrarPresenca();atualizarLista();}});
 })();
-(function(){if(document.querySelector('script[src*="portal-admin-tools.js"]'))return;var s=document.createElement('script');s.src='./portal-admin-tools.js?v=20260814';s.defer=true;document.head.appendChild(s)})();
+(function(){if(document.querySelector('script[src*="portal-admin-tools.js"]'))return;var s=document.createElement('script');s.src='./portal-admin-tools.js?v=20261021-resumos2';s.defer=true;document.head.appendChild(s)})();
 
