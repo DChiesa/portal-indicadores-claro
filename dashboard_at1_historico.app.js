@@ -14,6 +14,9 @@ const CURRENT_PATH=CURRENT_FOLDER+'/'+CURRENT_NAME;
 const HISTORY_FOLDER='historico';
 const HISTORY_RE=/^dashboard_at1_historico_(\d{4})\.(\d{2})\.xlsx$/i;
 const REFRESH_MS=30*60*1000;
+const FILE_CACHE_DB='at1_dashboard_file_cache_v12';
+const FILE_CACHE_STORE='workbooks';
+let currentObjectVersion='';
 const METAS={TOTAL:.024,GPON:.014,HFC:.024,HIBRIDO:.035};
 let sb=null,chart=null,refreshTimer=null;
 let state={analitico:[],base:[],historico:[],codigos:[],contractMode:'top',baixaMode:'code',baixaStatus:'all',city:'BAGE',type:'TOTAL',start:'',end:'',node:'TODOS',baixa:'TODOS',file:null,sourceKind:'current',catalog:[]};
@@ -134,7 +137,22 @@ function historicoValue(metric,p){
 }
 function period(rows){const ds=rows.map(rowDate).filter(Boolean).sort((a,b)=>a.key.localeCompare(b.key));const p=ds.at(-1)||mk(new Date().getFullYear(),new Date().getMonth()+1,1);return{y:p.y,m:p.m,days:new Date(p.y,p.m,0).getDate(),last:Math.max(1,...ds.filter(x=>x.y===p.y&&x.m===p.m).map(x=>x.d))}}
 function fillSelect(id,values,current,all){const e=$(id);e.innerHTML=`<option value="TODOS">${all}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');e.value=values.includes(current)?current:'TODOS';return e.value}
-function populate(){const cities=[...new Set(state.analitico.map(city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));$('fCity').innerHTML=cities.map(v=>`<option>${esc(v)}</option>`).join('');if(!cities.includes(state.city))state.city=cities[0]||'BAGE';$('fCity').value=state.city;$('fType').value=state.type;const baseRows=state.analitico.filter(r=>city(r)===state.city&&(state.type==='TOTAL'||tipo(r)===state.type));state.node=fillSelect('fNode',[...new Set(baseRows.map(node).filter(Boolean))].sort(),state.node,'TODOS OS NODES');state.baixa=fillSelect('fBaixa',[...new Set(baseRows.filter(r=>state.node==='TODOS'||node(r)===state.node).map(baixa).filter(Boolean))].sort(),state.baixa,'TODOS OS CÓDIGOS');$('fStart').value=state.start;$('fEnd').value=state.end}
+function cityProducts(cid){
+  const allowed=['TOTAL','GPON','HFC','HIBRIDO'];
+  const found=new Set();
+  state.base.filter(r=>r.city===cid).forEach(r=>{const t=norm(r.type);if(allowed.includes(t))found.add(t)});
+  state.analitico.filter(r=>city(r)===cid).forEach(r=>{const t=tipo(r);if(allowed.includes(t))found.add(t)});
+  const technologies=allowed.filter(t=>t!=='TOTAL'&&found.has(t));
+  if(technologies.length===1&&technologies[0]==='GPON')return['GPON'];
+  return allowed.filter(t=>found.has(t)||(t==='TOTAL'&&technologies.length>1));
+}
+function syncProductSelect(){
+  const options=cityProducts(state.city),onlyGpon=options.length===1&&options[0]==='GPON';
+  if(onlyGpon||!options.includes(state.type))state.type=onlyGpon?'GPON':(options.includes('TOTAL')?'TOTAL':(options[0]||'GPON'));
+  $('fType').innerHTML=options.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  $('fType').value=state.type;
+}
+function populate(){const cities=[...new Set(state.analitico.map(city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));$('fCity').innerHTML=cities.map(v=>`<option>${esc(v)}</option>`).join('');if(!cities.includes(state.city))state.city=cities[0]||'BAGE';$('fCity').value=state.city;syncProductSelect();const baseRows=state.analitico.filter(r=>city(r)===state.city&&(state.type==='TOTAL'||tipo(r)===state.type));state.node=fillSelect('fNode',[...new Set(baseRows.map(node).filter(Boolean))].sort(),state.node,'TODOS OS NODES');state.baixa=fillSelect('fBaixa',[...new Set(baseRows.filter(r=>state.node==='TODOS'||node(r)===state.node).map(baixa).filter(Boolean))].sort(),state.baixa,'TODOS OS CÓDIGOS');$('fStart').value=state.start;$('fEnd').value=state.end}
 function top(rows,getter,dateGetter,p,limit=20,only){const map=new Map();for(const r of rows){if(only&&!only(r))continue;const k=getter(r),d=dateGetter(r)||rowDate(r);if(!k||!d||d.y!==p.y||d.m!==p.m)continue;if(!map.has(k))map.set(k,{label:k,total:0,days:{}});const o=map.get(k);o.total++;o.days[d.d]=(o.days[d.d]||0)+1}return[...map.values()].sort((a,b)=>b.total-a.total||a.label.localeCompare(b.label)).slice(0,limit)}
 function heat(id,label,items,p,total,baseAt1=0,showAt1=false){let h=`<table class="heat"><thead><tr><th>${label}</th>`;for(let d=1;d<=p.days;d++)h+=`<th>${d}</th>`;h+='<th>TOTAL</th><th>%</th>'+(showAt1?'<th>% / AT1</th>':'')+'</tr></thead><tbody>';for(const x of items){h+=`<tr><td class="label">${esc(x.label)}</td>`;for(let d=1;d<=p.days;d++){const v=x.days[d]||0,c=v===0?'c0':v===1?'c1':v<=3?'c2':v<=5?'c3':'c4';h+=`<td class="${c}">${v||''}</td>`}h+=`<td>${x.total}</td><td>${fmtPct(total?x.total/total*100:0)}</td>`+(showAt1?`<td>${fmtPct(baseAt1?x.total/baseAt1*100:0)} p.p.</td>`:'')+'</tr>'}if(!items.length)h+=`<tr><td colspan="${p.days+3+(showAt1?1:0)}">Sem dados para o filtro selecionado.</td></tr>`;$(id).innerHTML=h+'</tbody></table>'}
 
@@ -198,7 +216,9 @@ async function listFolder(folder){const result=await timeout(sb.storage.from(BUC
 function historyLabel(item){const m=item.name.match(HISTORY_RE);if(!m)return item.name;const names=['','JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];return`${names[Number(m[2])]||m[2]}/${m[1]} — ${item.name}`}
 async function refreshCatalog(loadCurrent=false){
   if(!sb||!sb.storage)throw new Error('Cliente Supabase indisponível. Reabra o relatório pelo portal.');
-  const current={name:CURRENT_NAME,path:CURRENT_PATH,folder:CURRENT_FOLDER,kind:'current'};
+  const listed=await listFolder(CURRENT_FOLDER),remote=listed.find(x=>x.name===CURRENT_NAME);
+  const current={name:CURRENT_NAME,path:CURRENT_PATH,folder:CURRENT_FOLDER,kind:'current',updated:remote?.updated||''};
+  currentObjectVersion=current.updated;
   state.catalog=[current];
   const select=$('sourceSelect');
   if(select){select.innerHTML='';select.add(new Option('BASE ÚNICA — '+CURRENT_PATH,CURRENT_PATH));select.value=CURRENT_PATH;}
@@ -206,9 +226,21 @@ async function refreshCatalog(loadCurrent=false){
   if(loadCurrent)await loadPath(CURRENT_PATH,'current');
   return{current,history:[]}
 }
-async function fetchWorkbook(path){const direct=await timeout(sb.storage.from(BUCKET).download(path,{}, {cache:'default'}),20000,'download de '+path);if(!direct.error&&direct.data)return direct.data.arrayBuffer();const signed=await timeout(sb.storage.from(BUCKET).createSignedUrl(path,120),15000,'URL assinada de '+path);if(signed.error||!signed.data?.signedUrl)throw direct.error||signed.error||new Error('Não foi possível acessar '+path);const response=await timeout(fetch(signed.data.signedUrl,{cache:'default'}),20000,'transferência de '+path);if(!response.ok)throw new Error('HTTP '+response.status+' ao baixar '+path);return response.arrayBuffer()}
+function openFileCache(){return new Promise((resolve,reject)=>{const req=indexedDB.open(FILE_CACHE_DB,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(FILE_CACHE_STORE))db.createObjectStore(FILE_CACHE_STORE,{keyPath:'key'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function cacheRead(key){try{const db=await openFileCache();return await new Promise((resolve,reject)=>{const req=db.transaction(FILE_CACHE_STORE,'readonly').objectStore(FILE_CACHE_STORE).get(key);req.onsuccess=()=>resolve(req.result?.buffer||null);req.onerror=()=>reject(req.error)})}catch(e){console.warn('Cache IndexedDB indisponível:',e);return null}}
+async function cacheWrite(key,path,buffer){try{const db=await openFileCache();await new Promise((resolve,reject)=>{const tx=db.transaction(FILE_CACHE_STORE,'readwrite'),store=tx.objectStore(FILE_CACHE_STORE);store.put({key,path,buffer,savedAt:new Date().toISOString()});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});return true}catch(e){console.warn('Não foi possível gravar o cache:',e);return false}}
+async function fetchWorkbook(path,force=false){
+  const key=path+'|'+(currentObjectVersion||'sem-versao');
+  if(!force){const cached=await cacheRead(key);if(cached?.byteLength){setStatus('Base carregada do cache do navegador: '+path,'ok');return{buffer:cached,fromCache:true}}}
+  const direct=await timeout(sb.storage.from(BUCKET).download(path,{}, {cache:'no-store'}),20000,'download de '+path);
+  let buffer=null;
+  if(!direct.error&&direct.data)buffer=await direct.data.arrayBuffer();
+  else{const signed=await timeout(sb.storage.from(BUCKET).createSignedUrl(path,120),15000,'URL assinada de '+path);if(signed.error||!signed.data?.signedUrl)throw direct.error||signed.error||new Error('Não foi possível acessar '+path);const response=await timeout(fetch(signed.data.signedUrl,{cache:'no-store'}),20000,'transferência de '+path);if(!response.ok)throw new Error('HTTP '+response.status+' ao baixar '+path);buffer=await response.arrayBuffer()}
+  await cacheWrite(key,path,buffer);
+  return{buffer,fromCache:false}
+}
 function findSheet(wb,names,index){const wanted=names.map(norm);return wb.SheetNames.find(n=>wanted.includes(norm(n)))||wb.SheetNames[index]||null}
-async function loadPath(path,kind){if(!path)return;state.file=path;if($('loadBtn'))$('loadBtn').disabled=true;if($('refreshBtn'))$('refreshBtn').disabled=true;setStatus('Baixando '+path+'...');try{const buf=await fetchWorkbook(path);if(!buf?.byteLength)throw new Error('Arquivo vazio: '+path);const wb=XLSX.read(buf,{type:'array',cellDates:true}),an=findSheet(wb,['ANALITICO','ANALÍTICO'],0),bn=findSheet(wb,['BASE','BASE CLIENTE','BASE_CLIENTE'],1),hn=findSheet(wb,['HISTORICO','HISTÓRICO'],-1),cn=findSheet(wb,['DESC COD BAIXA','DESCRICAO COD BAIXA','DESCRIÇÃO COD BAIXA'],-1);if(!an||!bn)throw new Error('Abas necessárias não encontradas. Disponíveis: '+wb.SheetNames.join(', '));const analitico=XLSX.utils.sheet_to_json(wb.Sheets[an],{defval:'',raw:true}),base=parseBase(wb.Sheets[bn]),historico=parseHistorico(wb.Sheets[hn]),codigos=cn?XLSX.utils.sheet_to_json(wb.Sheets[cn],{defval:'',raw:true}):[];if(!analitico.length||!base.length)throw new Error('Planilha sem registros nas abas '+an+' / '+bn);state.analitico=analitico;state.base=base;state.historico=historico;state.codigos=codigos;state.file=path;state.sourceKind=kind||(path.startsWith(CURRENT_FOLDER+'/')?'current':'history');state.city='BAGE';state.type='TOTAL';state.start='';state.end='';state.node='TODOS';state.baixa='TODOS';setupMonthSelector();render();$('updated').textContent='Carregado em '+new Date().toLocaleString('pt-BR');$('fileInfo').textContent=`Supabase: ${BUCKET}/${path} | Abas: ${an} e ${bn} | ${fmtInt(analitico.length)} registros`;setStatus('Base carregada com sucesso: '+path,'ok')}catch(e){console.error(e);setStatus('Falha: '+humanError(e),'err')}finally{if($('loadBtn'))$('loadBtn').disabled=false;if($('refreshBtn'))$('refreshBtn').disabled=false}}
+async function loadPath(path,kind,force=false){if(!path)return;state.file=path;if($('loadBtn'))$('loadBtn').disabled=true;if($('refreshBtn'))$('refreshBtn').disabled=true;setStatus('Baixando '+path+'...');try{const fetched=await fetchWorkbook(path,force),buf=fetched.buffer;if(!buf?.byteLength)throw new Error('Arquivo vazio: '+path);const wb=XLSX.read(buf,{type:'array',cellDates:true}),an=findSheet(wb,['ANALITICO','ANALÍTICO'],0),bn=findSheet(wb,['BASE','BASE CLIENTE','BASE_CLIENTE'],1),hn=findSheet(wb,['HISTORICO','HISTÓRICO'],-1),cn=findSheet(wb,['DESC COD BAIXA','DESCRICAO COD BAIXA','DESCRIÇÃO COD BAIXA'],-1);if(!an||!bn)throw new Error('Abas necessárias não encontradas. Disponíveis: '+wb.SheetNames.join(', '));const analitico=XLSX.utils.sheet_to_json(wb.Sheets[an],{defval:'',raw:true}),base=parseBase(wb.Sheets[bn]),historico=parseHistorico(wb.Sheets[hn]),codigos=cn?XLSX.utils.sheet_to_json(wb.Sheets[cn],{defval:'',raw:true}):[];if(!analitico.length||!base.length)throw new Error('Planilha sem registros nas abas '+an+' / '+bn);state.analitico=analitico;state.base=base;state.historico=historico;state.codigos=codigos;state.file=path;state.sourceKind=kind||(path.startsWith(CURRENT_FOLDER+'/')?'current':'history');state.city='BAGE';state.type='TOTAL';state.start='';state.end='';state.node='TODOS';state.baixa='TODOS';setupMonthSelector();render();$('updated').textContent='Carregado em '+new Date().toLocaleString('pt-BR');$('fileInfo').textContent=`Supabase: ${BUCKET}/${path} | Abas: ${an} e ${bn} | ${fmtInt(analitico.length)} registros`;setStatus((fetched.fromCache?'Base reutilizada do cache do navegador: ':'Base baixada e armazenada no cache: ')+path,'ok')}catch(e){console.error(e);setStatus('Falha: '+humanError(e),'err')}finally{if($('loadBtn'))$('loadBtn').disabled=false;if($('refreshBtn'))$('refreshBtn').disabled=false}}
 async function connect(){
   try{
     setStatus('Conectando à base única...');
@@ -216,17 +248,17 @@ async function connect(){
     if(!sb||!sb.storage)throw new Error('Cliente Supabase não foi criado.');
     await refreshCatalog(true);
     if(refreshTimer)clearInterval(refreshTimer);
-    refreshTimer=setInterval(()=>loadPath(CURRENT_PATH,'current'),REFRESH_MS);
+    refreshTimer=setInterval(()=>refreshCatalog(true).catch(e=>console.warn('Atualização automática:',e)),REFRESH_MS);
   }catch(e){console.error(e);setStatus('Falha: '+humanError(e),'err')}
 }
 ensureV8UI();
 $('baixaByCode')?.addEventListener('click',()=>{state.baixaMode='code';render()});$('baixaByGroup')?.addEventListener('click',()=>{state.baixaMode='group';render()});$('baixaAll')?.addEventListener('click',()=>{state.baixaStatus='all';render()});$('baixaExec')?.addEventListener('click',()=>{state.baixaStatus='exec';render()});$('baixaCancel')?.addEventListener('click',()=>{state.baixaStatus='cancel';render()});$('contractsTopBtn')?.addEventListener('click',()=>{state.contractMode='top';render()});$('contractsDailyBtn')?.addEventListener('click',()=>{state.contractMode='daily';render()});
-$('refreshBtn')?.addEventListener('click',()=>loadPath(CURRENT_PATH,'current'));
-$('loadBtn')?.addEventListener('click',()=>loadPath(CURRENT_PATH,'current'));
+$('refreshBtn')?.addEventListener('click',()=>refreshCatalog(false).then(()=>loadPath(CURRENT_PATH,'current',true)).catch(e=>setStatus('Falha: '+humanError(e),'err')));
+$('loadBtn')?.addEventListener('click',()=>loadPath(CURRENT_PATH,'current',false));
 if($('fCity'))$('fCity').onchange=e=>{state.city=e.target.value;state.node=state.baixa='TODOS';render()};if($('fType'))$('fType').onchange=e=>{state.type=e.target.value;state.node=state.baixa='TODOS';render()};if($('fStart'))$('fStart').onchange=e=>{state.start=e.target.value;render()};if($('fEnd'))$('fEnd').onchange=e=>{state.end=e.target.value;render()};if($('fNode'))$('fNode').onchange=e=>{state.node=e.target.value;state.baixa='TODOS';render()};if($('fBaixa'))$('fBaixa').onchange=e=>{state.baixa=e.target.value;render()};if($('clearBtn'))$('clearBtn').onclick=()=>{state.node=state.baixa='TODOS';const sel=$('fMonth');if(sel&&sel.value)applySelectedMonth(sel.value,false);render()};if($('pngBtn'))$('pngBtn').onclick=async()=>{const c=await html2canvas($('dashboardRoot'),{scale:2,backgroundColor:'#f2f4f7'}),a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`dashboard_at1_${state.city}_${state.type}.png`;a.click()};
 window.addEventListener('beforeunload',()=>refreshTimer&&clearInterval(refreshTimer));
 enforceFastPortalLayout();
 new MutationObserver(()=>{enforceFastPortalLayout();ensureV8UI()}).observe(document.body,{childList:true,subtree:true});
-setStatus('V11 · Preparando base única anual.');
+setStatus('V12 · Preparando base única anual com cache persistente.');
 connect();
 })();
