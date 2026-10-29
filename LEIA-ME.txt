@@ -1,24 +1,20 @@
-PORTAL DE INDICADORES CLARO - ARQUIVOS PARA O GITHUB
+PACOTE DE CACHE DOS DASHBOARDS
 
-Envie TODOS os arquivos deste pacote para a raiz do mesmo repositório GitHub Pages.
-O arquivo index.html é a página principal.
+IMPLEMENTACAO
+1. Substitua os HTMLs e JS existentes pelos arquivos deste pacote, mantendo todos na mesma pasta/caminho atual.
+2. Adicione portal-data-cache.js na mesma pasta dos HTMLs.
+3. Nao renomeie os arquivos existentes nem altere os caminhos do Supabase.
+4. Na primeira abertura cada base solicitada sera baixada normalmente. A partir da segunda, a copia local do navegador sera reutilizada.
 
-BASES ESPERADAS NO SUPABASE
-Bucket privado: bases-tecnico
+REGRAS APLICADAS
+- Arquivo atual: validacao e renovacao a cada 15 minutos.
+- Configuracoes/versoes: validacao a cada 5 minutos.
+- Historicos: cache por 180 dias e download somente quando a pagina realmente solicitar o arquivo.
+- Solicitacoes simultaneas do mesmo arquivo sao consolidadas em um unico download.
+- Se houver falha temporaria de rede, a ultima copia valida em cache e utilizada.
+- Filtros, calculos, colunas, layout e regras existentes foram preservados.
 
-atual/at1.xlsx
-atual/qualinet.txt
-atual/tnps.xlsx
-atual/nr35.xlsx
-atual/certidao_atendimento.xlsx
-atual/quebra_total.xlsx
-atual/recomendacoes.xlsx
-atual/flag_24h.xlsx
-atual/tecnico_certificado_atual.xlsx
-
-POLÍTICA RLS NECESSÁRIA
-create policy "Usuarios autenticados podem ler bases"
-on storage.objects for select to authenticated
-using (bucket_id = 'bases-tecnico');
-
-Observação: importação manual foi preservada em todos os painéis.
+ATUALIZACAO IMEDIATA
+No console do navegador, execute:
+PortalDataCache.clear()
+Depois atualize a pagina. Isso limpa somente o cache criado por este pacote.
