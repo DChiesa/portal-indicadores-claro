@@ -1,18 +1,44 @@
-/* Cache compartilhado dos dashboards - preserva a logica funcional existente. */
+/* Cache persistente compartilhado dos dashboards do portal.
+ * Mantem arquivos do Supabase no Cache Storage e revalida a versao remota
+ * no maximo uma vez por hora usando HEAD/ETag/Last-Modified.
+ */
 (()=>{'use strict';
-const VERSION='1.0.0',CACHE='portal-dados-v1',META='portal_dados_cache_meta_v1';
-const TTL={historico:180*24*60*60*1000,atual:15*60*1000,config:5*60*1000};
-const nativeFetch=window.fetch.bind(window),pending=new Map();
-let meta={};try{meta=JSON.parse(localStorage.getItem(META)||'{}')}catch(_){meta={}}
+const VERSION='3.0.0';
+const CACHE='portal-dados-v3';
+const OLD_CACHES=['portal-dados-v1','portal-dados-v2'];
+const META='portal_dados_cache_meta_v3';
+const RECHECK_MS=60*60*1000; // 1 hora
+const pending=new Map();
+const nativeFetch=window.fetch.bind(window);
+let meta={};
+try{meta=JSON.parse(localStorage.getItem(META)||'{}')||{}}catch(_){meta={}}
 const save=()=>{try{localStorage.setItem(META,JSON.stringify(meta))}catch(_){}};
-function isStorage(u){return /\.supabase\.co\/storage\/v1\/object\//i.test(u)&&!/\/list\//i.test(u)}
-function normalized(u){const x=new URL(u,location.href);['_ts','ts','t','v','nocache','cacheBust'].forEach(k=>x.searchParams.delete(k));if(x.searchParams.has('token'))x.searchParams.delete('token');return x.origin+x.pathname+(x.searchParams.toString()?'?'+x.searchParams:'')}
-function ttl(u){u=u.toLowerCase();if(/historico|history/.test(u))return TTL.historico;if(/config|periodo|versao|version/.test(u))return TTL.config;return TTL.atual}
-async function cachedFetch(input,init={}){const req=input instanceof Request?input:new Request(input,init);const url=req.url;if(req.method!=='GET'||!isStorage(url)||init.__semCachePortal)return nativeFetch(input,init);
- const key=normalized(url),age=Date.now()-(meta[key]||0),cache=await caches.open(CACHE),hit=await cache.match(key);
- if(hit&&age<ttl(key))return hit.clone();
- if(pending.has(key))return (await pending.get(key)).clone();
- const job=(async()=>{try{const response=await nativeFetch(input,{...init,cache:'default'});if(response.ok){await cache.put(key,response.clone());meta[key]=Date.now();save()}return response}catch(err){if(hit)return hit.clone();throw err}finally{pending.delete(key)}})();pending.set(key,job);return (await job).clone()}
+function isStorage(url){return /\.supabase\.co\/storage\/v1\/object\//i.test(url)&&!/\/list(?:\?|\/|$)/i.test(url)}
+function keyFor(url){const u=new URL(url,location.href);['_ts','ts','t','v','nocache','cacheBust','token'].forEach(k=>u.searchParams.delete(k));u.hash='';return u.origin+u.pathname+(u.searchParams.toString()?'?'+u.searchParams:'')}
+function validators(headers){return{etag:headers.get('etag')||'',modified:headers.get('last-modified')||'',length:headers.get('content-length')||''}}
+function sameVersion(a,b){if(!a||!b)return false;if(a.etag&&b.etag)return a.etag===b.etag;if(a.modified&&b.modified)return a.modified===b.modified&&(!a.length||!b.length||a.length===b.length);return false}
+async function remoteVersion(req){const headers=new Headers(req.headers);headers.delete('range');const probe=new Request(req.url,{method:'HEAD',headers,credentials:req.credentials,mode:req.mode,redirect:req.redirect,referrer:req.referrer,referrerPolicy:req.referrerPolicy,cache:'no-store'});const response=await nativeFetch(probe);if(!response.ok)throw new Error('HEAD '+response.status);return validators(response.headers)}
+async function store(cache,key,response){await cache.put(key,response.clone());const v=validators(response.headers);meta[key]={...v,checkedAt:Date.now(),savedAt:Date.now()};save()}
+async function cachedFetch(input,init={}){
+ const req=input instanceof Request?input:new Request(input,init);
+ if(req.method!=='GET'||!isStorage(req.url)||init.__semCachePortal)return nativeFetch(input,init);
+ const key=keyFor(req.url);
+ if(pending.has(key))return(await pending.get(key)).clone();
+ const job=(async()=>{
+  const cache=await caches.open(CACHE),hit=await cache.match(key,{ignoreVary:true,ignoreSearch:false}),info=meta[key]||null;
+  if(hit){
+   if(info&&Date.now()-(info.checkedAt||0)<RECHECK_MS)return hit.clone();
+   try{
+    const remote=await remoteVersion(req);
+    if(sameVersion(info,remote)){meta[key]={...info,...remote,checkedAt:Date.now()};save();return hit.clone()}
+    if(!remote.etag&&!remote.modified){meta[key]={...info,checkedAt:Date.now()};save();return hit.clone()}
+   }catch(error){console.warn('[PortalDataCache] Validacao remota indisponivel; usando cache local.',error);return hit.clone()}
+  }
+  const response=await nativeFetch(req,{cache:'no-store'});if(response.ok)await store(cache,key,response);return response;
+ })();
+ pending.set(key,job);try{return(await job).clone()}finally{pending.delete(key)}
+}
 window.fetch=cachedFetch;
-window.PortalDataCache={version:VERSION,async clear(){await caches.delete(CACHE);meta={};save()},async status(){return{version:VERSION,items:Object.keys(meta).length,ttl:TTL}}};
+window.PortalDataCache={version:VERSION,async clear(){await Promise.all([CACHE,...OLD_CACHES].map(x=>caches.delete(x)));meta={};save()},async status(){const cache=await caches.open(CACHE),keys=await cache.keys();return{version:VERSION,items:keys.length,metadata:Object.keys(meta).length,recheckMs:RECHECK_MS,recheckMinutes:RECHECK_MS/60000}},async remove(url){const key=keyFor(url),cache=await caches.open(CACHE);await cache.delete(key,{ignoreVary:true});delete meta[key];save()}};
+OLD_CACHES.forEach(x=>caches.delete(x).catch(()=>{}));
 })();
