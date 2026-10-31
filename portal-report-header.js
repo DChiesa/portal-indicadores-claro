@@ -7,8 +7,8 @@ const clean=s=>String(s||'').replace(/\s+/g,' ').trim();
 const esc=s=>clean(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const currentFile=()=>decodeURIComponent(location.pathname.split('/').pop()||'');
 function portalUrl(){return new URL(PORTAL_FILE,location.href).href;}
-function versionedPortalUrl(){const u=new URL(PORTAL_FILE,location.href);u.searchParams.set('portal_build','20261031-v4');return u.href;}
-function goHome(){try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'PORTAL_GO_HOME',build:'20261031-v4'},location.origin==='null'?'*':location.origin);return;}}catch(_){}try{window.top.location.replace(versionedPortalUrl());}catch(_){location.replace(versionedPortalUrl());}}
+function versionedPortalUrl(){const u=new URL(PORTAL_FILE,location.href);u.searchParams.set('portal_build','20261031-v5');return u.href;}
+function goHome(){try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'PORTAL_GO_HOME',build:'20261031-v5'},location.origin==='null'?'*':location.origin);return;}}catch(_){}try{window.top.location.replace(versionedPortalUrl());}catch(_){location.replace(versionedPortalUrl());}}
 function removeLegacy(){
  const selectors=['#clvHeader','#bannerClaroPadrao','.banner-claro-padrao','.banner-claro-acoes','#headerPadraoClaro','.header-padrao-claro','.portal-report-header','.report-standard-header'];
  selectors.forEach(sel=>document.querySelectorAll(sel).forEach(el=>el.remove()));
