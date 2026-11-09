@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const BUILD='20261109';
+const BUILD='20261109-2';
 const $=id=>document.getElementById(id);
 function status(text,kind=''){const e=$('repoStatus');if(e){e.textContent=text;e.className='repoStatus '+kind}}
 function loadOne(primary,fallback,label,test){if(test&&test())return Promise.resolve();return new Promise((resolve,reject)=>{let done=false;const finish=(ok,v)=>{if(done)return;done=true;clearTimeout(timer);ok?resolve(v):reject(v)},timer=setTimeout(()=>finish(false,new Error('Tempo excedido ao carregar '+label)),20000);function attempt(url,canFallback){status('Carregando '+label+'...');const script=document.createElement('script');script.src=url;script.async=false;script.onload=()=>finish(true);script.onerror=()=>{script.remove();if(canFallback&&fallback)attempt(fallback,false);else finish(false,new Error('Não foi possível carregar '+label))};document.head.appendChild(script)}attempt(primary,true)})}
