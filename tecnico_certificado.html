@@ -8,7 +8,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TÉCNICO CERTIFICADO — v13.3</title>
-<!-- v13.3-aprovada: metas exibidas e calculadas no quadro: manutenção 5,0 pontos; instalação/desconexão 2,5 pontos; TEC1 98%; revisita abaixo de 7%; proteção contra cache antigo -->
+<!-- v13.3-aprovada: metas exibidas e calculadas no quadro: manutenção 5,0 pontos; instalação/desconexão 2,5 pontos; TEC1 95%; revisita abaixo de 7%; proteção contra cache antigo -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -102,14 +102,14 @@
 (function(){
 'use strict';
 const APP_VERSION='v13.3-aprovada';
-console.info('TÉCNICO CERTIFICADO',APP_VERSION,'| Manutenção 5,0 | Instalação/Desconexão 2,5 | TEC1 98% | Revisita < 7%');
+console.info('TÉCNICO CERTIFICADO',APP_VERSION,'| Manutenção 5,0 | Instalação/Desconexão 2,5 | TEC1 95% | Revisita < 7%');
 const SUPABASE_URL='https://frxfoztyctrvsobbawmo.supabase.co';
 const SUPABASE_KEY='sb_publishable_or6yc7T71Hpyajn9ctn1FA_BjsB6LhL';
 const BUCKET='bases-tecnico';
 const CURRENT='atual/tecnico_certificado_atual.xlsx';
 const HISTORY='historico';
 const HISTORY_RE=/^tecnico_certificado_(\d{4})_(0[1-9]|1[0-2])\.xlsx$/i;
-const META={manutProd:5.0,servProd:2.5,revisita:.07,revisitaAjuste:.069,tec1:.98};
+const META={manutProd:5.0,servProd:2.5,revisita:.07,revisitaAjuste:.069,tec1:.95};
 const DEFAULT_PERIOD={ni:'2026-07-01',nf:'2026-07-31',ai:'2026-06-21',af:'2026-07-21'};
 // v8-candidata: históricos usam períodos fixos pelo mês/ano do nome do arquivo.
 const HISTORICAL_PERIODS={
