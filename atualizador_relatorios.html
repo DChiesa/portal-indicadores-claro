@@ -20,10 +20,12 @@ const BUCKET=C?.BUCKET||'bases-tecnico';
 const $=id=>document.getElementById(id);
 let sb=null;let usuarioAtual='';let adminAtual=false;let controlMap=new Map();
 const BASE_UNIFICADA={report_key:'analitico_unificado',report_title:'Base Analítica Unificada',category_key:'manutencao',current_path:'atual/analitico_unificado.xlsx',history_path:'historico/analitico_unificado',can_update_current:true,can_update_history:true,unified:true};
+const TECNICO_CERTIFICADO={report_key:'tecnico_certificado',report_title:'Técnico Certificado',category_key:'manutencao',current_path:'atual/tecnico_certificado.xlsx',history_path:'historico/tecnico_certificado',can_update_current:true,can_update_history:true};
 const RELATORIOS_UNIFICADOS=['dashboard_at1_historico','at1_historico','sla_pme4h','sla_pme_4h','rank_contratos_at1','estudo_codigos_cluster'];
 const TITULOS_UNIFICADOS=['at1 / g1','at1 g1','at1 historico','sla pme','ranking de contratos at1','estudo de codigos'];
 function pertenceBaseUnificada(x){const k=normalizar(x.report_key||x.codigo||x.arquivo||x.report_file||'').replace(/\.html$/,'');const t=normalizar(x.report_title||x.nome||x.titulo||'');const p=normalizar(x.current_path||'');return RELATORIOS_UNIFICADOS.some(v=>k===v||k.includes(v))||TITULOS_UNIFICADOS.some(v=>t.includes(v))||p==='atual/analitico_unificado.xlsx';}
 function aplicarBaseUnificada(rows){const filtradas=(rows||[]).filter(x=>!pertenceBaseUnificada(x));filtradas.unshift({...BASE_UNIFICADA});return filtradas;}
+function incluirTecnicoCertificado(rows){const lista=(rows||[]).map(x=>({...x}));const existe=lista.some(x=>normalizar(x.report_key||x.codigo)==='tecnico_certificado'||normalizar(x.report_title||x.nome||x.titulo)==='tecnico certificado'||normalizar(x.current_path)==='atual/tecnico_certificado.xlsx');if(!existe)lista.push({...TECNICO_CERTIFICADO});return lista;}
 function client(){if(!sb)sb=supabase.createClient(C.SUPABASE_URL,C.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return sb}
 function setMsg(t,cls){$('msg').className=cls||'warn';$('msg').textContent=t}
 function normalizar(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
@@ -64,7 +66,7 @@ async function carregar(){
     }
    }else console.warn('Lista automatica de relatorios:',pag.error);
   }
-  rows=aplicarBaseUnificada(rows);rows=rows.filter(x=>{if(x.unified)return true;const c=controlMap.get(normalizar(x.report_key||x.codigo));return !c||(c.visible!==false&&c.allow_update!==false)});const unicos=new Map();for(const x of rows){const k=normalizar(x.current_path||x.report_key||x.report_title);if(k&&!unicos.has(k))unicos.set(k,x)}rows=[...unicos.values()];$('topStatus').textContent='Carregado';
+  rows=aplicarBaseUnificada(rows);rows=incluirTecnicoCertificado(rows);rows=rows.filter(x=>{if(x.unified)return true;const c=controlMap.get(normalizar(x.report_key||x.codigo));return !c||(c.visible!==false&&c.allow_update!==false)});const unicos=new Map();for(const x of rows){const k=normalizar(x.current_path||x.report_key||x.report_title);if(k&&!unicos.has(k))unicos.set(k,x)}rows=[...unicos.values()];$('topStatus').textContent='Carregado';
   if(!rows.length){setMsg('Seu login não possui relatórios liberados para atualização.','err');return}
   setMsg('A Base Analítica Unificada atualiza quatro painéis com um único Excel. Os demais relatórios permanecem independentes.','ok');
   $('list').innerHTML='';rows.forEach(x=>$('list').appendChild(card(x)));await carregarAuditoria();
